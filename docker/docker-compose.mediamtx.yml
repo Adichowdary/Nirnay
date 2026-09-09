@@ -1,0 +1,24 @@
+# MediaMTX RTSP-to-WebRTC Server for INSIGHT
+# Run: docker compose up -d
+# Or: docker run (see below)
+
+version: "3.8"
+
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: insight-mediamtx
+    restart: unless-stopped
+    ports:
+      - "8554:8554"     # RTSP
+      - "1935:1935"     # RTMP
+      - "8888:8888"     # HLS
+      - "8889:8889"     # WebRTC
+      - "8889:8889/udp" # WebRTC UDP
+    environment:
+      - MTX_PROTOCOLS=tcp
+      - MTX_WEBRTCADDRES=:8889
+      - MTX_LOGLEVEL=info
+    # Uncomment for development with self-signed certs:
+    # volumes:
+    #   - ./mediamtx.yml:/mediamtx.yml
