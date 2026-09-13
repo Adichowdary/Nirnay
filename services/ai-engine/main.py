@@ -149,6 +149,16 @@ class RandomVCSelectionResponse(BaseModel):
 
 # ----------------- Existing Routes -----------------
 
+@app.get("/")
+def root():
+    return {
+        "service": "NIRNAY AI & Computer Vision Engine",
+        "status": "ONLINE",
+        "docs": "/docs",
+        "health": "/health",
+        "version": "2.4.0"
+    }
+
 @app.get("/health")
 def health_check():
     return {
