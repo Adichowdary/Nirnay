@@ -58,7 +58,8 @@ export default function AdminIssuesPage() {
   const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
-    setCurrentTime(Date.now());
+    const timer = setTimeout(() => setCurrentTime(Date.now()), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const issuesList = useMemo(() => {
@@ -171,7 +172,7 @@ export default function AdminIssuesPage() {
               Centralized Issue &amp; Escalation Management
             </h1>
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold mt-0.5">
             Two-Level Administrative Resolution Engine: Level 1 (State Admin) → Level 2 (Central Directorate)
           </p>
         </div>
@@ -212,7 +213,7 @@ export default function AdminIssuesPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           {/* State Filter */}
           <div>
-            <label className="block text-[10px] font-bold text-muted uppercase mb-1">State</label>
+            <label className="block text-[10px] font-extrabold text-slate-700 dark:text-slate-300 uppercase mb-1">State</label>
             <select
               value={selectedState}
               onChange={(e) => {
@@ -232,7 +233,7 @@ export default function AdminIssuesPage() {
 
           {/* District Geographic Filter */}
           <div>
-            <label className="block text-[10px] font-bold text-muted uppercase mb-1">District (Geographic Filter)</label>
+            <label className="block text-[10px] font-extrabold text-slate-700 dark:text-slate-300 uppercase mb-1">District (Geographic Filter)</label>
             <select
               value={selectedDistrict}
               onChange={(e) => setSelectedDistrict(e.target.value)}
@@ -249,7 +250,7 @@ export default function AdminIssuesPage() {
 
           {/* Priority */}
           <div>
-            <label className="block text-[10px] font-bold text-muted uppercase mb-1">Priority</label>
+            <label className="block text-[10px] font-extrabold text-slate-700 dark:text-slate-300 uppercase mb-1">Priority</label>
             <select
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
@@ -265,7 +266,7 @@ export default function AdminIssuesPage() {
 
           {/* Status */}
           <div>
-            <label className="block text-[10px] font-bold text-muted uppercase mb-1">Status</label>
+            <label className="block text-[10px] font-extrabold text-slate-700 dark:text-slate-300 uppercase mb-1">Status</label>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
@@ -334,12 +335,12 @@ export default function AdminIssuesPage() {
                   </div>
 
                   <h3 className="font-bold text-sm sm:text-base text-primary">{issue.title}</h3>
-                  <p className="text-xs text-muted leading-relaxed line-clamp-2">{issue.description}</p>
+                  <p className="text-xs text-slate-700 dark:text-slate-200 font-medium leading-relaxed line-clamp-2">{issue.description}</p>
 
-                  <div className="flex items-center gap-3 pt-1 text-[11px] text-muted flex-wrap">
-                    <span>Assigned: <strong className="text-secondary">{issue.assignedTo}</strong></span>
+                  <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-600 dark:text-slate-300 font-medium flex-wrap">
+                    <span>Assigned: <strong className="text-slate-900 dark:text-white font-bold">{issue.assignedTo}</strong></span>
                     <span>•</span>
-                    <span className={isBreached ? "text-rose-500 font-bold" : "text-secondary font-medium"}>
+                    <span className={isBreached ? "text-rose-500 font-bold" : "text-slate-800 dark:text-slate-200 font-semibold"}>
                       <Clock size={12} className="inline mr-1" />
                       {isBreached ? "⚠ SLA Breached" : `SLA: ${issue.slaHours}h`}
                     </span>

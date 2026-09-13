@@ -71,7 +71,19 @@ export function Providers({ children }: { children: ReactNode }) {
   const [authLoading, setAuthLoading] = useState(true);
 
   // ── UI state ────────────────────────────────────────────────────────────
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // Single dark-mode authority: light default for office use,
+  // stored override wins. GovernmentUtilityBar + TopBar consume this.
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const stored =
+        localStorage.getItem("insight-theme") ??
+        localStorage.getItem("insight-dark-mode");
+      return stored === "dark" || stored === "true";
+    } catch {
+      return false;
+    }
+  });
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isReducedMotion, setIsReducedMotion] = useState(false);
@@ -168,9 +180,6 @@ export function Providers({ children }: { children: ReactNode }) {
   // ── Dark mode ────────────────────────────────────────────────────────────
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    const stored = localStorage.getItem("insight-dark-mode");
-    if (stored !== null) setIsDarkMode(stored === "true");
-
     const mqMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     setIsReducedMotion(mqMotion.matches);
     const handleMotion = (e: MediaQueryListEvent) => setIsReducedMotion(e.matches);
@@ -181,12 +190,25 @@ export function Providers({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDarkMode);
-    localStorage.setItem("insight-dark-mode", String(isDarkMode));
+    try {
+      localStorage.setItem("insight-theme", isDarkMode ? "dark" : "light");
+      localStorage.removeItem("insight-dark-mode");
+    } catch {
+      /* storage unavailable */
+    }
   }, [isDarkMode]);
 
   const signOut = async () => {
     setUserRole(null);
-    await supabase?.auth.signOut();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("insight_active_role");
+      document.cookie = "insight_demo_role=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+    try {
+      await supabase?.auth.signOut();
+    } catch {
+      // Ignore Supabase network errors in demo/offline mode
+    }
     setUser(null);
     setSession(null);
     setUserProfile(null);

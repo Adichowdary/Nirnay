@@ -131,23 +131,50 @@ export default function MonitorPage() {
     const timer = setInterval(() => {
       setCurrentTime(new Date().toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" }));
       setHeartbeatSeconds((prev) => (prev >= 4 ? 1 : prev + 1));
-
-      // Random jitter to online cameras
-      setCameras((prev) =>
-        prev.map((cam) => {
-          if (cam.status !== "ONLINE" || !cam.personCount) return cam;
-          const delta = Math.floor(Math.random() * 3) - 1; // -1, 0, or +1
-          const nextCount = Math.max(12, cam.personCount + delta);
-          return {
-            ...cam,
-            personCount: nextCount,
-            last_seen: new Date().toISOString(),
-          };
-        })
-      );
-    }, 3500);
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Poll real AI Headcount Engine via /api/ai/cctv every 15 seconds
+  useEffect(() => {
+    const targetCam = selectedCamera || cameras.find((c) => c.status === "ONLINE") || cameras[0];
+    if (!targetCam) return;
+
+    async function pollAiHeadcount() {
+      try {
+        const res = await fetch("/api/ai/cctv", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            camera_id: targetCam.id,
+            institute_id: targetCam.facility_id,
+            sanctioned_strength: targetCam.expectedQuota || 50,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setCameras((prev) =>
+            prev.map((c) =>
+              c.id === targetCam.id
+                ? {
+                    ...c,
+                    personCount: data.detected_count,
+                    anomaly: data.anomaly_type,
+                    last_seen: new Date().toISOString(),
+                  }
+                : c
+            )
+          );
+        }
+      } catch {
+        // Continue gracefully
+      }
+    }
+
+    pollAiHeadcount();
+    const pollInterval = setInterval(pollAiHeadcount, 15000);
+    return () => clearInterval(pollInterval);
+  }, [selectedCamera?.id]);
 
   const onlineCount = cameras.filter((c) => c.status === "ONLINE").length;
   const offlineCount = cameras.filter((c) => c.status === "OFFLINE").length;
@@ -230,7 +257,7 @@ export default function MonitorPage() {
               <select
                 value={activeHeatmapCamId}
                 onChange={(e) => setActiveHeatmapCamId(e.target.value)}
-                className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 {cameras
                   .filter((c) => c.status === "ONLINE")
@@ -338,7 +365,7 @@ export default function MonitorPage() {
                           {camera.status}
                         </span>
                       </div>
-                      <p className="text-xs text-muted truncate">{camera.location}</p>
+                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{camera.location}</p>
                     </div>
                   </div>
                 ))}
@@ -365,7 +392,7 @@ export default function MonitorPage() {
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                 <div>
                   <h3 className="font-extrabold text-sm text-white">{selectedCamera.name}</h3>
-                  <p className="text-xs text-slate-400">{selectedCamera.facility_name} • {selectedCamera.location}</p>
+                  <p className="text-xs text-slate-200 font-medium">{selectedCamera.facility_name} • {selectedCamera.location}</p>
                 </div>
               </div>
 
@@ -469,19 +496,19 @@ export default function MonitorPage() {
             {/* Stream Telemetry Footer */}
             <div className="p-4 border-t border-slate-800 bg-slate-900 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
               <div>
-                <span className="text-slate-500 block text-[10px]">RTSP Stream URI</span>
-                <span className="text-slate-300 font-bold truncate block">{selectedCamera.stream_url}</span>
+                <span className="text-slate-300 font-semibold block text-[10px]">RTSP Stream URI</span>
+                <span className="text-slate-100 font-bold truncate block">{selectedCamera.stream_url}</span>
               </div>
               <div>
-                <span className="text-slate-500 block text-[10px]">Bitrate &amp; Codec</span>
+                <span className="text-slate-300 font-semibold block text-[10px]">Bitrate &amp; Codec</span>
                 <span className="text-emerald-400 font-bold">4.8 Mbps · H.264</span>
               </div>
               <div>
-                <span className="text-slate-500 block text-[10px]">Tamper &amp; Occlusion</span>
+                <span className="text-slate-300 font-semibold block text-[10px]">Tamper &amp; Occlusion</span>
                 <span className="text-emerald-400 font-bold">✓ Clear Lens</span>
               </div>
               <div>
-                <span className="text-slate-500 block text-[10px]">Heartbeat Latency</span>
+                <span className="text-slate-300 font-semibold block text-[10px]">Heartbeat Latency</span>
                 <span className="text-cyan-400 font-bold">18 ms (Zero Jitter)</span>
               </div>
             </div>

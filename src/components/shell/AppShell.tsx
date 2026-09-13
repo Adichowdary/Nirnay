@@ -11,12 +11,15 @@ import { useApp } from "@/components/shell/Providers";
 import { NIRNAYCopilot } from "@/components/ai/NIRNAYCopilot";
 import { CCTVMatrixModal } from "@/components/cctv/CCTVMatrixModal";
 import { DigitalInspectionAuditModal } from "@/components/inspection/DigitalInspectionAuditModal";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Map,
   ClipboardCheck,
   Menu,
   Brain,
+  Activity,
+  Sparkles,
 } from "lucide-react";
 
 interface AppShellProps {
@@ -117,87 +120,110 @@ export function AppShell({ children, title, subtitle }: AppShellProps) {
           onOpenCCTVMatrix={() => setShowCCTVMatrix(true)}
         />
 
-        {/* Breadcrumbs */}
-        <div className="px-4 md:px-6 border-b border-base bg-card/50">
-          <Breadcrumbs />
-        </div>
+        {/* Breadcrumbs (hidden on map to maximize screen area) */}
+        {pathname !== "/dashboard/map" && (
+          <div className="px-4 md:px-6 border-b border-base bg-card/50">
+            <Breadcrumbs />
+          </div>
+        )}
 
         <main
-          className="flex-1 overflow-y-auto overflow-x-hidden pb-16 md:pb-0"
+          className={cn(
+            "flex-1 min-w-0",
+            pathname === "/dashboard/map"
+              ? "overflow-hidden"
+              : "overflow-y-auto overflow-x-hidden pb-20 md:pb-0"
+          )}
           id="main-content"
           tabIndex={-1}
           aria-label="Main content"
         >
           {children}
 
-          {/* Government Footer */}
-          <GovernmentFooter />
+          {/* Government Footer (hidden on interactive GIS map) */}
+          {pathname !== "/dashboard/map" && <GovernmentFooter />}
         </main>
 
-        {/* Mobile Bottom Nav */}
+        {/* Mobile Bottom Nav — premium glass morphism design */}
         <nav
-          className="md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-around z-30 px-2"
+          className="md:hidden fixed bottom-0 left-0 right-0 z-30"
           style={{
-            height: 56,
             background: "var(--surface-card)",
             borderTop: "1px solid var(--border-light)",
-            boxShadow: "0 -1px 4px rgba(0, 0, 0, 0.04)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
+            paddingBottom: "env(safe-area-inset-bottom, 0px)",
           }}
           aria-label="Mobile bottom navigation"
         >
-          {[
-            { href: "/dashboard", label: "Home", icon: LayoutDashboard },
-            { href: "/dashboard/ai-signals", label: "AI", icon: Brain },
-            { href: "/dashboard/map", label: "Map", icon: Map },
-            { href: "/dashboard/inspections", label: "Tasks", icon: ClipboardCheck },
-          ].map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-lg transition-all"
-                style={{
-                  color: isActive ? "var(--blue-600)" : "var(--text-muted)",
-                  background: isActive ? "var(--color-info-bg)" : "transparent",
-                }}
-                aria-current={isActive ? "page" : undefined}
-              >
-                <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
-                <span
+          <div className="flex items-stretch justify-around px-1 h-16">
+            {[
+              { href: "/dashboard", label: "Home", icon: LayoutDashboard },
+              { href: "/dashboard/map", label: "Map", icon: Map },
+              { href: "/dashboard/ai-signals", label: "Signals", icon: Activity },
+              { href: "/dashboard/inspections", label: "Tasks", icon: ClipboardCheck },
+            ].map(({ href, label, icon: Icon }) => {
+              const isActive = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 px-1 rounded-xl mx-0.5 my-1 transition-all relative"
                   style={{
-                    fontSize: "10px",
-                    fontWeight: isActive ? 600 : 500,
-                    letterSpacing: "var(--tracking-wide)",
-                    color: isActive ? "var(--blue-600)" : "var(--text-muted)",
+                    color: isActive ? "var(--blue-500)" : "var(--text-muted)",
+                    background: isActive ? "var(--color-info-bg)" : "transparent",
                   }}
+                  aria-current={isActive ? "page" : undefined}
                 >
-                  {label}
-                </span>
-              </Link>
-            );
-          })}
+                  {isActive && (
+                    <span
+                      className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+                      style={{ background: "var(--blue-500)" }}
+                    />
+                  )}
+                  <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: isActive ? 700 : 500,
+                      letterSpacing: "var(--tracking-wide)",
+                    }}
+                  >
+                    {label}
+                  </span>
+                </Link>
+              );
+            })}
 
-          <button
-            type="button"
-            onClick={() => setShowCopilot(true)}
-            className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-lg transition-colors cursor-pointer text-cyan-500"
-            aria-label="Open AI Copilot"
-          >
-            <Brain size={20} className="animate-pulse" />
-            <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "var(--tracking-wide)" }}>Copilot</span>
-          </button>
+            {/* AI Copilot Button */}
+            <button
+              type="button"
+              onClick={() => setShowCopilot(true)}
+              className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 px-1 rounded-xl mx-0.5 my-1 transition-all cursor-pointer relative"
+              style={{
+                background: "linear-gradient(135deg, rgba(79,70,229,0.14), rgba(139,92,246,0.14))",
+                color: "#6366F1",
+                border: "1px solid rgba(99,102,241,0.2)",
+              }}
+              aria-label="Open AI Copilot"
+            >
+              <Sparkles size={20} strokeWidth={2} className="animate-pulse" />
+              <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "var(--tracking-wide)" }}>Copilot</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(true)}
-            className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-lg transition-colors cursor-pointer"
-            style={{ color: "var(--text-muted)" }}
-            aria-label="Open navigation menu"
-          >
-            <Menu size={20} strokeWidth={1.8} />
-            <span style={{ fontSize: "10px", fontWeight: 500, letterSpacing: "var(--tracking-wide)" }}>Menu</span>
-          </button>
+            {/* Menu button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 px-1 rounded-xl mx-0.5 my-1 transition-all cursor-pointer"
+              style={{ color: "var(--text-muted)" }}
+              aria-label="Open navigation menu"
+            >
+              <Menu size={20} strokeWidth={1.8} />
+              <span style={{ fontSize: "10px", fontWeight: 500, letterSpacing: "var(--tracking-wide)" }}>More</span>
+            </button>
+          </div>
         </nav>
       </div>
 

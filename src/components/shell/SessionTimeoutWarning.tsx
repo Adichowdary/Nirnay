@@ -32,10 +32,14 @@ export function SessionTimeoutWarning() {
   }, [showWarning]);
 
   const handleLogout = useCallback(() => {
-    // Clear demo role cookie if any
-    document.cookie = "insight_demo_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    router.push("/login?timeout=true");
-  }, [router]);
+    if (typeof document !== "undefined") {
+      document.cookie = "insight_demo_role=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("insight_active_role");
+      window.location.href = "/login?timeout=true";
+    }
+  }, []);
 
   // Track user activity
   useEffect(() => {

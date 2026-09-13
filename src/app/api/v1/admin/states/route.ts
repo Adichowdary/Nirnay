@@ -4,9 +4,13 @@ import {
   getAllStateAdmins,
   createStateAdmin,
 } from "@/lib/admin/state-management";
+import { verifyAdminRequest, APEX_ADMIN_ROLES, DEFAULT_ADMIN_ROLES } from "@/lib/auth/admin-guard";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(request, DEFAULT_ADMIN_ROLES);
+    if (!auth.authorized && auth.errorResponse) return auth.errorResponse;
+
     const states = getAllStatesPerformance();
     const admins = getAllStateAdmins();
 
@@ -25,6 +29,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(request, APEX_ADMIN_ROLES);
+    if (!auth.authorized && auth.errorResponse) return auth.errorResponse;
+
     const body = await request.json();
     const { name, officialId, email, phone, stateId, permissions } = body;
 

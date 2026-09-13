@@ -5,26 +5,15 @@ import Link from "next/link";
 import {
   Ghost,
   ShieldAlert,
-  Users,
   Search,
-  AlertTriangle,
   CheckCircle2,
   Lock,
   Unlock,
-  TrendingDown,
   Building2,
-  ArrowRight,
   Sparkles,
-  Zap,
-  Filter,
-  FileCheck2,
-  IndianRupee,
-  Activity,
-  Layers,
   Fingerprint,
   Radio,
-  Clock,
-  RefreshCw,
+  IndianRupee,
 } from "lucide-react";
 import {
   DEMO_BIOMETRIC_COLLISIONS,
@@ -44,7 +33,7 @@ export default function GhostDetectionPage() {
   );
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
   const [scannedVectorsCount, setScannedVectorsCount] = useState<number>(24180);
-  const [isScanningActive, setIsScanningActive] = useState<boolean>(true);
+  const [isScanningActive] = useState<boolean>(true);
   const [autoFreezeAlert, setAutoFreezeAlert] = useState<{ name: string; clusterId: string } | null>(null);
 
   // Live vector scanning tick
@@ -57,7 +46,31 @@ export default function GhostDetectionPage() {
     return () => clearInterval(interval);
   }, [isScanningActive]);
 
-  const handleSimulateNewCollision = () => {
+  const handleSimulateNewCollision = async () => {
+    let aiDiscrepancy = "98.2% match across MP centers";
+    let riskTier: BiometricCollisionRecord["riskSeverity"] = "CRITICAL";
+
+    try {
+      const res = await fetch("/api/ai/ghost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scheme_code: "PM-AJAY",
+          institute_id: "INST-MP-BHOPAL-01",
+          registered_beneficiaries: 120,
+          biometric_attendance_avg: 118,
+          cctv_occupancy_avg: 42,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        riskTier = (data.ghost_risk_tier === "HIGH" ? "CRITICAL" : data.ghost_risk_tier) as BiometricCollisionRecord["riskSeverity"];
+        aiDiscrepancy = `Discrepancy Score: ${data.discrepancy_score * 100}% (${data.estimated_ghost_count} ghost delta)`;
+      }
+    } catch {
+      // Fallback
+    }
+
     const newId = `BIO-COL-${Date.now().toString().slice(-3)}`;
     const newRecord: BiometricCollisionRecord = {
       id: newId,
@@ -71,7 +84,7 @@ export default function GhostDetectionPage() {
       aadhaarHashCollision: true,
       claimedMonthlyStipend: 4800,
       lastSimultaneousCheckIn: "Just now (Simultaneous FRS in 2 centers)",
-      riskSeverity: "CRITICAL",
+      riskSeverity: riskTier,
       status: "ACTIVE_FLAG",
       detectedAt: new Date().toISOString(),
     };
@@ -79,7 +92,7 @@ export default function GhostDetectionPage() {
     setCollisions((prev) => [newRecord, ...prev]);
     setSelectedCluster(newRecord);
     setAutoFreezeAlert({ name: newRecord.beneficiaryName, clusterId: newRecord.clusterId });
-    setActionSuccessMessage(`🚨 NEW BIOMETRIC COLLISION DETECTED: ${newRecord.beneficiaryName} (98.2% match across MP centers)`);
+    setActionSuccessMessage(`🚨 NEW AI GHOST DISCREPANCY DETECTED: ${newRecord.beneficiaryName} (${aiDiscrepancy})`);
     setTimeout(() => setActionSuccessMessage(null), 5000);
   };
 
@@ -104,24 +117,28 @@ export default function GhostDetectionPage() {
 
   const filteredCollisions = collisions.filter((c) => {
     const matchesSearch =
+      searchTerm === "" ||
       c.beneficiaryName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.primaryCenter.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.conflictingCenter.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "ALL" || c.status === statusFilter;
+      c.conflictingCenter.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.primaryState.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "ALL" || c.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  const totalLeakageExposureLakhs = collisions.reduce(
-    (acc, curr) => acc + (curr.claimedMonthlyStipend * 12) / 100000,
-    0
-  );
+  const totalLeakageExposureLakhs = collisions.reduce((sum, c) => {
+    return sum + (c.claimedMonthlyStipend * 12) / 100000;
+  }, 0);
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-slate-900 border border-slate-800 text-white shadow-xl">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900 to-rose-950 border border-slate-800 text-white shadow-xl">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-inner">
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-inner flex-shrink-0">
             <Ghost size={30} />
           </div>
           <div>
@@ -142,15 +159,16 @@ export default function GhostDetectionPage() {
 
         <div className="flex items-center gap-3 flex-wrap">
           <button
+            type="button"
             onClick={handleSimulateNewCollision}
-            className="px-3.5 py-2 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg hover:scale-105 transition cursor-pointer"
+            className="px-3.5 py-2 rounded-2xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
             title="Simulate live multi-state biometric collision"
           >
             <Sparkles size={13} className="text-amber-300" />
             <span>Simulate Anomaly Ping</span>
           </button>
 
-          <div className="px-4 py-2 rounded-2xl bg-slate-800 border border-slate-700 text-right">
+          <div className="px-4 py-2 rounded-2xl bg-slate-800/90 border border-slate-700 text-right shadow-sm">
             <span className="text-[10px] text-slate-400 block uppercase font-medium">Estimated Leakage Prevented</span>
             <span className="text-sm font-extrabold text-emerald-400 font-mono">
               ₹{(totalLeakageExposureLakhs * 1.8).toFixed(1)} Lakhs / Yr
@@ -160,29 +178,29 @@ export default function GhostDetectionPage() {
       </div>
 
       {/* Live AI Neural Scanner Strip */}
-      <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs flex flex-wrap items-center justify-between gap-3 text-slate-300 shadow-sm">
+      <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs flex flex-wrap items-center justify-between gap-3 text-slate-700 dark:text-slate-300 shadow-sm">
         <div className="flex items-center gap-2.5">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          <span className="font-bold text-slate-100">DeepFace AI Biometric Clustering Engine:</span>
-          <span className="font-mono text-emerald-400 font-extrabold">{scannedVectorsCount.toLocaleString("en-IN")} Facial Vectors Parsed</span>
+          <span className="font-bold text-slate-900 dark:text-slate-100">DeepFace AI Biometric Clustering Engine:</span>
+          <span className="font-mono text-emerald-600 dark:text-emerald-400 font-extrabold">{scannedVectorsCount.toLocaleString("en-IN")} Facial Vectors Parsed</span>
           <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">(Across 184 National DoSJE Facilities)</span>
         </div>
 
         <div className="flex items-center gap-2 text-[11px] font-mono">
-          <span className="text-slate-400">Model Inference:</span>
-          <span className="text-purple-400 font-bold">18ms / frame</span>
-          <span className="text-slate-600">|</span>
-          <span className="text-slate-400">Cosine Threshold:</span>
-          <span className="text-amber-400 font-bold">&gt; 0.940</span>
+          <span className="text-slate-500 dark:text-slate-400">Model Inference:</span>
+          <span className="text-purple-600 dark:text-purple-400 font-bold">18ms / frame</span>
+          <span className="text-slate-300 dark:text-slate-700">|</span>
+          <span className="text-slate-500 dark:text-slate-400">Cosine Threshold:</span>
+          <span className="text-amber-600 dark:text-amber-400 font-bold">&gt; 0.940</span>
         </div>
       </div>
 
       {/* Auto-Freeze Advisory Banner if triggered */}
       {autoFreezeAlert && (
-        <div className="p-4 rounded-2xl bg-rose-950/90 border border-rose-500/60 text-rose-100 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xl animate-in slide-in-from-top-2">
+        <div className="p-4 rounded-2xl bg-rose-950 border border-rose-500/60 text-rose-100 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xl animate-in slide-in-from-top-2">
           <div className="flex items-center gap-2.5">
             <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0 animate-bounce" />
             <div>
@@ -196,17 +214,21 @@ export default function GhostDetectionPage() {
           </div>
           <div className="flex items-center gap-2 self-end sm:self-center">
             <button
+              type="button"
               onClick={() => {
-                handleToggleFreeze(collisions[0]?.id);
+                if (collisions[0]) {
+                  handleToggleFreeze(collisions[0].id);
+                }
                 setAutoFreezeAlert(null);
               }}
-              className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shadow"
+              className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1 shadow cursor-pointer"
             >
               <Lock size={12} /> Lock PFMS Stipend
             </button>
             <button
+              type="button"
               onClick={() => setAutoFreezeAlert(null)}
-              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+              className="px-2.5 py-1.5 rounded-xl bg-slate-700 dark:bg-slate-800 hover:bg-slate-600 dark:hover:bg-slate-700 text-slate-200 dark:text-slate-300 text-xs font-semibold cursor-pointer"
             >
               Dismiss
             </button>
@@ -216,7 +238,7 @@ export default function GhostDetectionPage() {
 
       {/* Action Banner if triggered */}
       {actionSuccessMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 text-xs flex items-center gap-2.5 shadow-xl animate-in fade-in">
+        <div className="p-4 rounded-2xl bg-emerald-950/90 border border-emerald-500/50 text-emerald-200 text-xs flex items-center gap-2.5 shadow-xl animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="font-semibold">{actionSuccessMessage}</span>
         </div>
@@ -224,42 +246,42 @@ export default function GhostDetectionPage() {
 
       {/* Top Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-card border border-base space-y-1">
-          <div className="flex items-center justify-between text-xs text-muted">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>Biometric Collisions</span>
             <Fingerprint className="w-4 h-4 text-rose-500" />
           </div>
-          <p className="text-2xl font-extrabold text-primary font-mono">{collisions.length}</p>
-          <span className="text-[10px] text-rose-500 font-medium">4 Critical Multi-State Matches</span>
+          <p className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">{collisions.length}</p>
+          <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium">4 Critical Multi-State Matches</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-card border border-base space-y-1">
-          <div className="flex items-center justify-between text-xs text-muted">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>Frozen DBT Accounts</span>
             <Lock className="w-4 h-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-extrabold text-primary font-mono">
+          <p className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">
             {collisions.filter((c) => c.status === "PAYMENT_FROZEN").length}
           </p>
-          <span className="text-[10px] text-amber-500 font-medium">Disbursements Auto-Halted</span>
+          <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Disbursements Auto-Halted</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-card border border-base space-y-1">
-          <div className="flex items-center justify-between text-xs text-muted">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>Grant Divergence Exposure</span>
-            <IndianRupee className="w-4 h-4 text-cyan-500" />
+            <IndianRupee className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
           </div>
-          <p className="text-2xl font-extrabold text-primary font-mono">₹57.7 L</p>
-          <span className="text-[10px] text-cyan-500 font-medium">Tranche vs Physical Progress</span>
+          <p className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">₹57.7 L</p>
+          <span className="text-[10px] text-cyan-600 dark:text-cyan-400 font-medium">Tranche vs Physical Progress</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-card border border-base space-y-1">
-          <div className="flex items-center justify-between text-xs text-muted">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>Facial FRS Similarity Floor</span>
             <Sparkles className="w-4 h-4 text-indigo-500" />
           </div>
-          <p className="text-2xl font-extrabold text-primary font-mono">&gt; 94.0%</p>
-          <span className="text-[10px] text-indigo-500 font-medium">DeepFace Embeddings Model</span>
+          <p className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono">&gt; 94.0%</p>
+          <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">DeepFace Embeddings Model</span>
         </div>
       </div>
 
@@ -267,24 +289,24 @@ export default function GhostDetectionPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Collision List */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="p-4 rounded-2xl bg-card border border-base flex flex-wrap items-center justify-between gap-3">
+          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-3">
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search beneficiary name, center or state..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
 
             <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-muted font-medium">Status:</span>
+              <span className="text-slate-500 dark:text-slate-400 font-medium">Status:</span>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none"
+                className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500"
               >
                 <option value="ALL">All Collisions</option>
                 <option value="ACTIVE_FLAG">Active Flag</option>
@@ -302,17 +324,19 @@ export default function GhostDetectionPage() {
                   key={record.id}
                   onClick={() => setSelectedCluster(record)}
                   className={cn(
-                    "p-4 rounded-2xl border transition-all cursor-pointer space-y-3",
+                    "p-4 rounded-2xl border transition-all cursor-pointer space-y-3 shadow-sm",
                     isSelected
-                      ? "bg-slate-900 border-rose-500/80 shadow-lg ring-1 ring-rose-500/40"
-                      : "bg-card border-base hover:border-slate-700"
+                      ? "bg-rose-50/80 dark:bg-rose-950/30 border-rose-500 shadow-md ring-1 ring-rose-500/30"
+                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                   )}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-                      <h3 className="font-extrabold text-sm text-primary">{record.beneficiaryName}</h3>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                      <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">
+                        {record.beneficiaryName}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                         {record.clusterId}
                       </span>
                     </div>
@@ -322,21 +346,22 @@ export default function GhostDetectionPage() {
                         className={cn(
                           "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
                           record.status === "PAYMENT_FROZEN"
-                            ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                            ? "bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30"
                             : record.status === "ACTIVE_FLAG"
-                            ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                            : "bg-sky-500/20 text-sky-400 border border-sky-500/30"
+                            ? "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30"
+                            : "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30"
                         )}
                       >
                         {record.status.replace("_", " ")}
                       </span>
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleToggleFreeze(record.id);
                         }}
                         className={cn(
-                          "px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition",
+                          "px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition shadow-sm cursor-pointer",
                           record.status === "PAYMENT_FROZEN"
                             ? "bg-emerald-600 hover:bg-emerald-500 text-white"
                             : "bg-rose-600 hover:bg-rose-500 text-white"
@@ -357,33 +382,33 @@ export default function GhostDetectionPage() {
 
                   {/* Dual Center Split Comparison */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
-                      <span className="text-[10px] text-slate-400 block font-semibold">Center A (Registered):</span>
-                      <p className="font-bold text-slate-200 truncate">{record.primaryCenter}</p>
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-1">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Center A (Registered):</span>
+                      <p className="font-bold text-slate-800 dark:text-slate-200 truncate">{record.primaryCenter}</p>
                       <span className="text-[10px] text-slate-500">{record.primaryState}</span>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
-                      <span className="text-[10px] text-rose-400 block font-semibold">Center B (Simultaneous Match):</span>
-                      <p className="font-bold text-slate-200 truncate">{record.conflictingCenter}</p>
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-1">
+                      <span className="text-[10px] text-rose-600 dark:text-rose-400 block font-semibold">Center B (Simultaneous Match):</span>
+                      <p className="font-bold text-slate-800 dark:text-slate-200 truncate">{record.conflictingCenter}</p>
                       <span className="text-[10px] text-slate-500">{record.conflictingState}</span>
                     </div>
                   </div>
 
                   {/* Similarity Metrics */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs text-muted font-mono">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs font-mono">
                     <div className="flex items-center gap-3">
-                      <span>
-                        Facial Match: <strong className="text-rose-400">{(record.faceSimilarityScore * 100).toFixed(1)}%</strong>
+                      <span className="text-slate-600 dark:text-slate-400">
+                        Facial Match: <strong className="text-rose-600 dark:text-rose-400">{(record.faceSimilarityScore * 100).toFixed(1)}%</strong>
                       </span>
-                      <span>
+                      <span className="text-slate-600 dark:text-slate-400">
                         Aadhaar Hash:{" "}
-                        <strong className={record.aadhaarHashCollision ? "text-rose-400" : "text-slate-400"}>
+                        <strong className={record.aadhaarHashCollision ? "text-rose-600 dark:text-rose-400" : "text-slate-500 dark:text-slate-400"}>
                           {record.aadhaarHashCollision ? "COLLISION ⚠️" : "UNIQUE"}
                         </strong>
                       </span>
                     </div>
-                    <span className="text-[11px] text-slate-400">{record.lastSimultaneousCheckIn}</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">{record.lastSimultaneousCheckIn}</span>
                   </div>
                 </div>
               );
@@ -394,33 +419,33 @@ export default function GhostDetectionPage() {
         {/* Right Col: Deep Cluster Inspector & Grant Anomalies */}
         <div className="space-y-6">
           {selectedCluster && (
-            <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 text-white space-y-4 shadow-xl">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-4 shadow-sm">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-2">
-                  <Fingerprint className="w-4 h-4 text-rose-400" />
-                  <h3 className="font-extrabold text-sm text-white">Biometric Cluster Diagnostic</h3>
+                  <Fingerprint className="w-4 h-4 text-rose-500" />
+                  <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Biometric Cluster Diagnostic</h3>
                 </div>
-                <span className="text-[10px] font-mono bg-slate-800 px-2 py-0.5 rounded text-slate-300">
+                <span className="text-[10px] font-mono bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700">
                   {selectedCluster.id}
                 </span>
               </div>
 
               <div className="space-y-2 text-xs">
-                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                  <span className="text-slate-400 block text-[10px]">Beneficiary Name</span>
-                  <p className="font-extrabold text-slate-100 text-sm">{selectedCluster.beneficiaryName}</p>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Beneficiary Name</span>
+                  <p className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">{selectedCluster.beneficiaryName}</p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                  <span className="text-slate-400 block text-[10px]">Monthly Claimed DBT Stipend</span>
-                  <p className="font-extrabold text-emerald-400 text-sm font-mono">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Monthly Claimed DBT Stipend</span>
+                  <p className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm font-mono">
                     ₹{selectedCluster.claimedMonthlyStipend.toLocaleString("en-IN")} / Month
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                  <span className="text-slate-400 block text-[10px]">Statutory AI Action Recommendation</span>
-                  <p className="text-xs text-rose-300 leading-relaxed">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Statutory AI Action Recommendation</span>
+                  <p className="text-xs text-rose-600 dark:text-rose-300 leading-relaxed font-medium">
                     Initiate physical surprise summons &amp; lock Aadhaar DBT seeding until physical biometric nodal audit.
                   </p>
                 </div>
@@ -429,7 +454,7 @@ export default function GhostDetectionPage() {
               <div className="pt-2">
                 <Link
                   href="/dashboard/inspections"
-                  className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition"
+                  className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
                 >
                   <ShieldAlert size={14} /> Dispatch Surprise Squad Audit
                 </Link>
@@ -438,43 +463,43 @@ export default function GhostDetectionPage() {
           )}
 
           {/* Scheme Grant Tranche vs Physical Progress */}
-          <div className="p-5 rounded-3xl bg-card border border-base space-y-4 shadow-sm">
-            <div className="flex items-center gap-2 pb-2 border-b border-base">
-              <Building2 className="w-4 h-4 text-cyan-500" />
-              <h3 className="font-bold text-sm text-primary">Grant Tranche vs Physical Progress</h3>
+          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+              <Building2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+              <h3 className="font-bold text-sm text-slate-900 dark:text-white">Grant Tranche vs Physical Progress</h3>
             </div>
 
             <div className="space-y-3">
               {DEMO_GRANT_ANOMALIES.map((grant) => (
-                <div key={grant.projectId} className="p-3 rounded-2xl bg-slate-900 border border-slate-800 space-y-2 text-xs">
+                <div key={grant.projectId} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-slate-100 truncate">{grant.projectName}</h4>
+                    <h4 className="font-bold text-slate-900 dark:text-slate-100 truncate">{grant.projectName}</h4>
                     <span
                       className={cn(
-                        "px-1.5 py-0.5 rounded text-[9px] font-mono font-bold",
+                        "px-2 py-0.5 rounded text-[9px] font-mono font-bold",
                         grant.riskStatus === "HIGH_EXPOSURE"
-                          ? "bg-rose-500/20 text-rose-400"
-                          : "bg-emerald-500/20 text-emerald-400"
+                          ? "bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30"
+                          : "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30"
                       )}
                     >
                       {grant.riskStatus}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400 font-mono">
+                  <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-400 font-mono">
                     <div>
                       <span>Claimed: </span>
-                      <strong className="text-slate-200">{grant.claimedProgress}%</strong>
+                      <strong className="text-slate-900 dark:text-slate-200">{grant.claimedProgress}%</strong>
                     </div>
                     <div>
                       <span>Verified: </span>
-                      <strong className="text-rose-400">{grant.verifiedPhysicalProgress}%</strong>
+                      <strong className="text-rose-600 dark:text-rose-400">{grant.verifiedPhysicalProgress}%</strong>
                     </div>
                   </div>
 
-                  <div className="pt-1 text-[11px] flex justify-between text-slate-400">
+                  <div className="pt-1 text-[11px] flex justify-between text-slate-600 dark:text-slate-400">
                     <span>Tranche Divergence:</span>
-                    <span className="font-bold text-amber-400 font-mono">₹{grant.financialDivergenceLakhs} Lakhs</span>
+                    <span className="font-bold text-amber-600 dark:text-amber-400 font-mono">₹{grant.financialDivergenceLakhs} Lakhs</span>
                   </div>
                 </div>
               ))}
@@ -484,16 +509,16 @@ export default function GhostDetectionPage() {
       </div>
 
       {/* Real-Time Algorithmic Threat Timeline */}
-      <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 text-white space-y-4 shadow-xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+      <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white space-y-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <Radio className="w-4 h-4 text-rose-400 animate-pulse" />
-            <h3 className="font-extrabold text-sm text-white">Live Biometric Anomaly Stream & Audit Trail</h3>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30">
+            <Radio className="w-4 h-4 text-rose-500 animate-pulse" />
+            <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Live Biometric Anomaly Stream &amp; Audit Trail</h3>
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30 font-bold">
               REAL-TIME BROADCAST
             </span>
           </div>
-          <span className="text-xs text-slate-400 font-mono">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
             Connected to 184 Edge Biometric Nodes
           </span>
         </div>
@@ -503,7 +528,7 @@ export default function GhostDetectionPage() {
             {
               time: "2 mins ago",
               badge: "SIMULTANEOUS FRS",
-              color: "text-rose-400 bg-rose-500/20 border-rose-500/30",
+              color: "text-rose-700 dark:text-rose-400 bg-rose-100 dark:bg-rose-500/20 border-rose-300 dark:border-rose-500/30",
               title: "Cross-District Face Match (98.4%)",
               desc: "Jaipur Center & Jodhpur Institute reported matching facial vector with 0s delta.",
               action: "Auto-summon dispatched",
@@ -511,7 +536,7 @@ export default function GhostDetectionPage() {
             {
               time: "8 mins ago",
               badge: "AADHAAR CLUSTER",
-              color: "text-amber-400 bg-amber-500/20 border-amber-500/30",
+              color: "text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/20 border-amber-300 dark:border-amber-500/30",
               title: "Duplicate UIDAI Mask Hash",
               desc: "Same Aadhaar vault hash associated with 2 active stipend allocations in UP & Delhi.",
               action: "Stipend flagged in PFMS",
@@ -519,7 +544,7 @@ export default function GhostDetectionPage() {
             {
               time: "19 mins ago",
               badge: "GRANT RATIO ALERT",
-              color: "text-sky-400 bg-sky-500/20 border-sky-500/30",
+              color: "text-sky-700 dark:text-sky-400 bg-sky-100 dark:bg-sky-500/20 border-sky-300 dark:border-sky-500/30",
               title: "Tranche 2 Disbursed (₹37.4L Divergence)",
               desc: "Physical infrastructure milestone at 48% vs mandatory 70% threshold for tranche release.",
               action: "Under Financial Triage",
@@ -527,18 +552,18 @@ export default function GhostDetectionPage() {
           ].map((item, idx) => (
             <div
               key={idx}
-              className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 space-y-2 hover:border-slate-700 transition"
+              className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 space-y-2 hover:border-slate-300 dark:hover:border-slate-700 transition"
             >
               <div className="flex items-center justify-between gap-1 text-[10px]">
                 <span className={`px-2 py-0.5 rounded font-mono font-bold border ${item.color}`}>
                   {item.badge}
                 </span>
-                <span className="text-slate-500 font-mono">{item.time}</span>
+                <span className="text-slate-500 dark:text-slate-500 font-mono">{item.time}</span>
               </div>
-              <p className="font-bold text-xs text-slate-200">{item.title}</p>
-              <p className="text-[11px] text-slate-400 leading-relaxed">{item.desc}</p>
+              <p className="font-bold text-xs text-slate-900 dark:text-slate-200">{item.title}</p>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">{item.desc}</p>
               <div className="pt-1 flex items-center gap-1.5 text-[10px] text-slate-500 font-mono">
-                <CheckCircle2 size={12} className="text-emerald-400" />
+                <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400" />
                 <span>Action: {item.action}</span>
               </div>
             </div>

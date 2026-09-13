@@ -245,20 +245,25 @@ export default function EndToEndScenarioPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-2xl">
+        <div
+          className="flex items-center gap-1.5 p-1 rounded-2xl"
+          style={{ background: "var(--surface-secondary)", border: "1px solid var(--border-light)" }}
+        >
           <button
             onClick={() => setActiveTab("TIMELINE")}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-              activeTab === "TIMELINE" ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white"
+              activeTab === "TIMELINE" ? "bg-blue-600 text-white shadow-md" : ""
             }`}
+            style={activeTab !== "TIMELINE" ? { color: "var(--text-muted)" } : {}}
           >
             Incident Replay (Demo)
           </button>
           <button
             onClick={() => setActiveTab("WHAT_IF")}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
-              activeTab === "WHAT_IF" ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white"
+              activeTab === "WHAT_IF" ? "bg-blue-600 text-white shadow-md" : ""
             }`}
+            style={activeTab !== "WHAT_IF" ? { color: "var(--text-muted)" } : {}}
           >
             <Sliders size={13} /> Policy Simulator 2.0
           </button>

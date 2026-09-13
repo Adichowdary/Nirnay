@@ -131,7 +131,16 @@ export default function DatabaseStoragePage() {
   };
 
   useEffect(() => {
-    fetchData();
+    let active = true;
+    const timer = setTimeout(() => {
+      if (active) {
+        fetchData();
+      }
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   // Handle direct file upload to MongoDB Atlas

@@ -11,7 +11,7 @@ export interface LiveStreamEvent {
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "INFO";
   location: string;
   facilityName: string;
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 }
 
 const SEED_EVENTS: LiveStreamEvent[] = [

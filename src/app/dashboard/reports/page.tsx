@@ -100,7 +100,7 @@ export default function ReportsPage() {
             <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--surface-tertiary)" }}>
               <div className="h-full rounded-full" style={{ width: s.width, background: s.deltaColor }} />
             </div>
-            <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{s.desc}</p>
+            <p className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{s.desc}</p>
           </div>
         ))}
       </div>
@@ -118,7 +118,7 @@ export default function ReportsPage() {
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
                 {["District", "State", "Projects", "CCTV Uptime", "Health", "Anomalies", "Grade"].map((h) => (
-                  <th key={h} className="py-2.5 px-3 text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                  <th key={h} className="py-3 px-3 text-[11px] font-extrabold uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>
                     {h}
                   </th>
                 ))}
@@ -134,7 +134,7 @@ export default function ReportsPage() {
               ].map((r) => (
                 <tr key={r.district} style={{ borderBottom: "1px solid var(--border-light)" }}>
                   <td className="py-2.5 px-3 font-semibold" style={{ color: "var(--text-primary)" }}>{r.district}</td>
-                  <td className="py-2.5 px-3" style={{ color: "var(--text-muted)" }}>{r.state}</td>
+                  <td className="py-2.5 px-3 font-medium" style={{ color: "var(--text-secondary)" }}>{r.state}</td>
                   <td className="py-2.5 px-3 tabular-nums" style={{ color: "var(--text-primary)" }}>{r.projects}</td>
                   <td className="py-2.5 px-3 tabular-nums" style={{ color: "var(--text-primary)" }}>{r.cctv}</td>
                   <td className="py-2.5 px-3 tabular-nums font-semibold" style={{ color: "var(--text-primary)" }}>{r.health}</td>

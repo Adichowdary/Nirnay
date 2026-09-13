@@ -3,6 +3,27 @@ import crypto from "crypto";
 import { mongoServerAtlasClient } from "@/lib/db/mongodb.server";
 import { MediaFileRecord } from "@/lib/db/mongodb";
 
+const MAX_MULTIPART_SIZE = 25 * 1024 * 1024; // 25 MB
+const MAX_BASE64_SIZE = 15 * 1024 * 1024; // 15 MB
+const DISALLOWED_EXTENSIONS = /\.(exe|bat|cmd|sh|php|js|mjs|html|htm|com|vbs|scr|pif)$/i;
+
+function sanitizeFilename(name: string): string {
+  return name.replace(/[/\\]/g, "_").replace(/["\r\n]/g, "").slice(0, 150);
+}
+
+function isAllowedFile(mime: string, filename: string): boolean {
+  if (DISALLOWED_EXTENSIONS.test(filename)) return false;
+  return (
+    mime.startsWith("image/") ||
+    mime.startsWith("video/") ||
+    mime.startsWith("audio/") ||
+    mime.includes("pdf") ||
+    mime.includes("document") ||
+    mime.includes("word") ||
+    mime.includes("octet-stream")
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
     const contentType = request.headers.get("content-type") || "";
@@ -16,11 +37,27 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: "No file provided in form data" }, { status: 400 });
       }
 
+      if (file.size > MAX_MULTIPART_SIZE) {
+        return NextResponse.json(
+          { success: false, error: `File exceeds maximum allowed size of 25MB` },
+          { status: 413 }
+        );
+      }
+
+      const safeFilename = sanitizeFilename(file.name || "upload");
+      const mimeType = file.type || "application/octet-stream";
+
+      if (!isAllowedFile(mimeType, safeFilename)) {
+        return NextResponse.json(
+          { success: false, error: "File format or extension is not permitted" },
+          { status: 400 }
+        );
+      }
+
       const buffer = Buffer.from(await file.arrayBuffer());
       const base64 = buffer.toString("base64");
       const sha256Hash = crypto.createHash("sha256").update(buffer).digest("hex");
 
-      const mimeType = file.type || "application/octet-stream";
       let type: MediaFileRecord["type"] = "other";
       if (mimeType.startsWith("image/")) type = "photo";
       else if (mimeType.startsWith("video/")) type = "video";
@@ -39,7 +76,7 @@ export async function POST(request: NextRequest) {
 
       const record: MediaFileRecord = {
         id: fileId,
-        filename: file.name,
+        filename: safeFilename,
         mimeType,
         sizeBytes: buffer.length,
         type,
@@ -97,16 +134,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "dataBase64 is required" }, { status: 400 });
     }
 
+    const safeJsonFilename = sanitizeFilename(filename);
+    if (!isAllowedFile(mimeType, safeJsonFilename)) {
+      return NextResponse.json(
+        { success: false, error: "File format or extension is not permitted" },
+        { status: 400 }
+      );
+    }
+
     // Extract raw base64 string
     const base64Data = dataBase64.includes(",") ? dataBase64.split(",")[1] : dataBase64;
     const buffer = Buffer.from(base64Data, "base64");
+    if (buffer.length > MAX_BASE64_SIZE) {
+      return NextResponse.json(
+        { success: false, error: "Payload exceeds maximum allowed size of 15MB" },
+        { status: 413 }
+      );
+    }
     const sha256Hash = crypto.createHash("sha256").update(buffer).digest("hex");
 
     const fileId = `FILE-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
     const record: MediaFileRecord = {
       id: fileId,
-      filename,
+      filename: safeJsonFilename,
       mimeType,
       sizeBytes: buffer.length,
       type,

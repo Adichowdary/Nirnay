@@ -7,9 +7,13 @@ import {
   escalateIssue,
   addCommentToIssue,
 } from "@/lib/issues/issue-store";
+import { verifyAdminRequest } from "@/lib/auth/admin-guard";
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(request);
+    if (!auth.authorized && auth.errorResponse) return auth.errorResponse;
+
     const url = new URL(request.url);
     const state = url.searchParams.get("state") || undefined;
     const district = url.searchParams.get("district") || undefined;
@@ -24,6 +28,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(request);
+    if (!auth.authorized && auth.errorResponse) return auth.errorResponse;
+
     const body = await request.json();
     const {
       title,
@@ -79,6 +86,9 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(request);
+    if (!auth.authorized && auth.errorResponse) return auth.errorResponse;
+
     const body = await request.json();
     const { action, issueId, assignedToName, assignedToRole, adminName, reason, comment } = body;
 

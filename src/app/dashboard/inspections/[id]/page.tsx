@@ -2,7 +2,6 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { DEMO_PROJECTS } from "@/lib/demo-data";
 import {
   FileText,
   Shield,
@@ -24,8 +23,9 @@ import {
 import { generateMinistryDossierPDF } from "@/lib/reports/pdf-generator";
 
 export default function DigitalInspectionReportPage() {
-  const params = useParams<{ id: string }>();
-  const inspectionId = params.id || "INSP-0089";
+  const params = useParams();
+  const rawId = params?.id;
+  const inspectionId = (Array.isArray(rawId) ? rawId[0] : rawId) || "INSP-0089";
 
   // Mock report data matching Pillar 10 specifications
   const report = {

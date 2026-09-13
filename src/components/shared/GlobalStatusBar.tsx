@@ -22,7 +22,7 @@ const METRICS: MetricItem[] = [
   { key: "inspectors_active",  label: "Inspectors", icon: ({ size, style }) => <Users size={size} style={style} />,         color: "var(--green-500)" },
 ];
 
-function AnimatedNumber({ value, duration = 600 }: { value: number; duration?: number }) {
+function AnimatedNumber({ value, duration = 180 }: { value: number; duration?: number }) {
   const [display, setDisplay] = useState(0);
   const start = useRef(0);
   const startTime = useRef<number | null>(null);
@@ -82,7 +82,7 @@ function LiveClock() {
         >
           {time}
         </span>
-        <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", letterSpacing: "0.04em" }}>IST</span>
+        <span style={{ fontSize: "0.68rem", color: "var(--text-secondary)", fontWeight: 700, letterSpacing: "0.04em" }}>IST</span>
       </div>
     </div>
   );
@@ -138,8 +138,9 @@ export function GlobalStatusBar() {
               </span>
               <span
                 style={{
-                  fontSize: "0.65rem",
-                  color: "var(--text-muted)",
+                  fontSize: "0.72rem",
+                  color: "var(--text-secondary)",
+                  fontWeight: 700,
                   whiteSpace: "nowrap",
                 }}
               >
@@ -166,7 +167,7 @@ export function GlobalStatusBar() {
           <span className="tabular font-bold" style={{ fontSize: "0.88rem", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
             {cctvLabel}
           </span>
-          <span style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>CCTV</span>
+          <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", fontWeight: 700 }}>CCTV</span>
         </div>
       </div>
 

@@ -31,7 +31,7 @@ export default function ProjectsPage() {
           >
             Projects
           </h1>
-          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
             {DEMO_PROJECTS.length} projects across 8 districts
           </p>
         </div>
@@ -150,8 +150,8 @@ export default function ProjectsPage() {
 
               {/* Location */}
               <div className="flex items-center gap-1.5 mb-3">
-                <MapPin size={11} style={{ color: "var(--text-muted)" }} />
-                <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                <MapPin size={12} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                   {project.district_name}, {project.state}
                 </span>
               </div>
@@ -162,7 +162,7 @@ export default function ProjectsPage() {
                 style={{ borderTop: "1px solid var(--border-light)" }}
               >
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                     Health
                   </p>
                   <p className="text-sm font-bold tabular" style={{ color: "var(--text-primary)" }}>
@@ -170,7 +170,7 @@ export default function ProjectsPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                     CCTV
                   </p>
                   <p
@@ -185,7 +185,7 @@ export default function ProjectsPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                     People
                   </p>
                   <p className="text-sm font-bold tabular" style={{ color: "var(--text-primary)" }}>
@@ -199,10 +199,10 @@ export default function ProjectsPage() {
                 className="flex items-center justify-between mt-3 pt-3"
                 style={{ borderTop: "1px solid var(--border-light)" }}
               >
-                <span className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>
+                <span className="text-[10px] font-mono font-bold text-slate-700 dark:text-slate-300">
                   {project.id}
                 </span>
-                <ArrowRight size={12} style={{ color: "var(--text-muted)" }} />
+                <ArrowRight size={12} className="text-blue-600 dark:text-blue-400" />
               </div>
             </Link>
           );

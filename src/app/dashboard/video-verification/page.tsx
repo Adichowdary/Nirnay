@@ -152,12 +152,30 @@ export default function VideoVerificationPage() {
     setChecklistCompleted({});
     setDuration(0);
 
-    await new Promise((r) => setTimeout(r, 1200));
-    const participant = selectRandomParticipant();
+    await new Promise((r) => setTimeout(r, 200));
+    let participant = selectRandomParticipant();
+
+    // Call FastAPI AI Random VC Endpoint
+    try {
+      const vcRes = await fetch("/api/ai/vc?institute_id=p1&institute_name=Asha+Rehabilitation+Centre");
+      if (vcRes.ok) {
+        const vcData = await vcRes.json();
+        if (vcData.target_name) {
+          participant = {
+            ...participant,
+            name: vcData.target_name,
+            role: vcData.selected_role.replace(/_/g, " "),
+            staffId: `DoSJE-STF-${vcData.target_aadhaar_last4}`,
+          };
+        }
+      }
+    } catch {
+      // Fallback to local participant
+    }
 
     // Step 2: Requesting participant
     setSession((prev) => ({ ...prev, status: "requesting", participant }));
-    await new Promise((r) => setTimeout(r, 1500));
+    await new Promise((r) => setTimeout(r, 250));
 
     // Step 3: Acquiring local media with graceful fallback
     setSession((prev) => ({ ...prev, status: "connecting" }));
@@ -202,7 +220,7 @@ export default function VideoVerificationPage() {
     }
 
     // Brief connection latency to feel real
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 200));
 
     setSession((prev) => ({
       ...prev,
@@ -342,13 +360,13 @@ export default function VideoVerificationPage() {
             {/* Status Diagnostics Banner */}
             <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
               <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-                <span className="text-slate-400">Webcam Hardware:</span>
+                <span className="text-slate-300 font-semibold">Webcam Hardware:</span>
                 <span className={`font-bold ${hasRealCamera ? "text-emerald-400" : "text-cyan-400"}`}>
                   {hasRealCamera ? "Detected ✓" : "Gov Emulated ✓"}
                 </span>
               </div>
               <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-                <span className="text-slate-400">Microphone:</span>
+                <span className="text-slate-300 font-semibold">Microphone:</span>
                 <span className={`font-bold ${hasRealMic ? "text-emerald-400" : "text-cyan-400"}`}>
                   {hasRealMic ? "Detected ✓" : "Duplex Tunnel ✓"}
                 </span>
@@ -365,7 +383,7 @@ export default function VideoVerificationPage() {
                 <h2 className="text-lg font-black text-white">
                   Randomized Video Verification Protocol
                 </h2>
-                <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto leading-relaxed">
+                <p className="text-xs text-slate-200 mt-1 max-w-md mx-auto leading-relaxed font-medium">
                   As mandated under DoSJE surprise inspection rules, the automated engine randomly assigns and rings a project incharge or on-duty staff member at any registered institute to prevent proxy staffing.
                 </p>
               </div>
@@ -374,7 +392,7 @@ export default function VideoVerificationPage() {
                 <div className="font-bold text-cyan-300 flex items-center gap-1.5">
                   <Shield size={14} /> Anti-Collusion Guarantees:
                 </div>
-                <ul className="text-slate-400 text-[11px] space-y-1 list-disc list-inside">
+                <ul className="text-slate-200 text-[11px] space-y-1 list-disc list-inside font-medium">
                   <li>Neither inspectors nor institute staff know call timings in advance</li>
                   <li>Live AI Face Recognition matches staff against DoSJE central HRMS database</li>
                   <li>Call records and snapshot evidence are stamped with ISRO Bhuvan Cadastral GNSS</li>
@@ -407,7 +425,7 @@ export default function VideoVerificationPage() {
                     ? "Executing Anti-Collusion Duty Algorithm..."
                     : "Connecting via Encrypted WebRTC Bridge..."}
                 </h2>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-200 font-medium mt-1">
                   Querying national facility registry &amp; signaling participant...
                 </p>
               </div>
@@ -426,8 +444,8 @@ export default function VideoVerificationPage() {
                     <div className="text-[11px] text-cyan-400 font-semibold truncate">
                       {session.participant.role}
                     </div>
-                    <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 truncate">
-                      <MapPin size={10} className="shrink-0 text-slate-500" />
+                    <div className="text-[10px] text-slate-300 font-medium flex items-center gap-1 mt-0.5 truncate">
+                      <MapPin size={10} className="shrink-0 text-cyan-400" />
                       <span className="truncate">{session.participant.facility}</span>
                     </div>
                   </div>
@@ -674,7 +692,12 @@ export default function VideoVerificationPage() {
                   ].map((opt) => (
                     <button
                       key={opt.value}
-                      onClick={() => setSession((prev) => ({ ...prev, outcome: opt.value as any }))}
+                      onClick={() =>
+                        setSession((prev) => ({
+                          ...prev,
+                          outcome: opt.value as "completed" | "unable_to_verify" | "follow_up_required",
+                        }))
+                      }
                       className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
                         session.outcome === opt.value
                           ? `${opt.color} border-transparent shadow`

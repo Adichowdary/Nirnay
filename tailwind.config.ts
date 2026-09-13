@@ -24,10 +24,10 @@ const config: Config = {
         },
         // Semantic accents (4 roles each)
         blue: {
-          tint:   "#EAF1FF",
-          base:   "#2E6BFF",
-          strong: "#1D4FD1",
-          text:   "#163B99",
+          tint:   "#EEF2FF",
+          base:   "#4F46E5",
+          strong: "#4338CA",
+          text:   "#3730A3",
         },
         green: {
           tint:   "#E9F9EF",
@@ -53,6 +53,20 @@ const config: Config = {
           base:   "#7C4DE0",
           strong: "#5E33B8",
           text:   "#432680",
+        },
+        // Premium upgrade — vibrant Digital India accents
+        primary: {
+          DEFAULT: "#4F46E5",
+          hover: "#4338CA",
+          active: "#3730A3",
+          foreground: "#F8FAFC",
+        },
+        indigo: {
+          50: "#EEF2FF",
+          100: "#E0E7FF",
+          500: "#6366F1",
+          600: "#4F46E5",
+          700: "#4338CA",
         },
         // Dark mode surfaces (designed separately, not inverted)
         dark: {
@@ -142,6 +156,8 @@ const config: Config = {
         "slide-in-left": "slide-in-left 250ms cubic-bezier(0.16, 1, 0.3, 1) both",
         shimmer: "shimmer 1.5s linear infinite",
         "draw-check": "draw-check 200ms cubic-bezier(0.16, 1, 0.3, 1) both",
+        "micro-pop": "fade-in 150ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
+        "toast-premium": "fade-in 350ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
       },
     },
   },

@@ -7,6 +7,7 @@ import { GlobalStatusBar } from "@/components/shared/GlobalStatusBar";
 import { NationalPulseBar } from "@/components/shared/NationalPulseBar";
 import { AISignalPanel } from "@/components/ai/AISignalPanel";
 import { DEMO_PROJECTS, DEMO_AUDIT_EVENTS, DEMO_METRICS } from "@/lib/demo-data";
+import type { AuditEvent } from "@/types";
 import { formatRelativeTime, getStatusStyle, cn } from "@/lib/utils";
 import {
   ArrowRight,
@@ -30,6 +31,7 @@ import {
 } from "lucide-react";
 import { ExplainableRiskModal } from "@/components/ai/ExplainableRiskModal";
 import { CCTVMatrixModal } from "@/components/cctv/CCTVMatrixModal";
+import { Stagger, StaggerItem } from "@/components/motion/MicroInteractions";
 
 const MapPanel = dynamic(
   () => import("@/components/map/MapPanel").then((m) => ({ default: m.MapPanel })),
@@ -68,18 +70,10 @@ function ProjectCard({
 
   return (
     <div
-      className="block transition-all rounded-xl p-3"
+      className="gov-card p-3 transition-all duration-200 hover:-translate-y-0.5"
       style={{
         background: "var(--surface-card)",
         border: "1px solid var(--border-light)",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--border-default)";
-        e.currentTarget.style.boxShadow = "var(--shadow-md)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--border-light)";
-        e.currentTarget.style.boxShadow = "none";
       }}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -90,8 +84,7 @@ function ProjectCard({
               style={{ background: statusStyle.dotColor }}
             />
             <span
-              className="text-[10px] font-bold uppercase tracking-wider"
-              style={{ color: "var(--text-muted)" }}
+              className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300"
             >
               {project.status.replace("-", " ")}
             </span>
@@ -102,8 +95,7 @@ function ProjectCard({
             {project.name}
           </p>
           <p
-            className="text-[10px] truncate"
-            style={{ color: "var(--text-muted)" }}
+            className="text-[11px] truncate font-semibold text-slate-700 dark:text-slate-300"
           >
             {project.district_name}, {project.state}
           </p>
@@ -127,21 +119,20 @@ function ProjectCard({
 
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1">
-          <Camera size={10} style={{ color: "var(--text-muted)" }} />
-          <span className="text-[10px] tabular" style={{ color: "var(--text-muted)" }}>
+          <Camera size={11} className="text-blue-600 dark:text-blue-400" />
+          <span className="text-[10px] tabular font-bold text-slate-700 dark:text-slate-300">
             {project.cctv_online}/{project.cctv_total}
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <Activity size={10} style={{ color: "var(--text-muted)" }} />
-          <span className="text-[10px] tabular" style={{ color: "var(--text-muted)" }}>
+          <Activity size={11} className="text-emerald-600 dark:text-emerald-400" />
+          <span className="text-[10px] tabular font-bold text-slate-700 dark:text-slate-300">
             {project.health.overall}%
           </span>
         </div>
         <ArrowRight
-          size={10}
-          className="ml-auto"
-          style={{ color: "var(--text-muted)" }}
+          size={11}
+          className="ml-auto text-slate-600 dark:text-slate-300"
         />
       </div>
     </div>
@@ -211,8 +202,7 @@ function AuditEventItem({ event }: { event: typeof DEMO_AUDIT_EVENTS[0] }) {
           </span>
         </div>
         <p
-          className="text-[10px] mt-0.5"
-          style={{ color: "var(--text-muted)" }}
+          className="text-[11px] mt-0.5 font-semibold text-slate-700 dark:text-slate-300"
         >
           {event.actor_name} · {time}
         </p>
@@ -249,16 +239,19 @@ export default function CommandCenterPage() {
     const timer = setInterval(() => {
       const randomAction = actions[Math.floor(Math.random() * actions.length)];
       const randomActor = actors[Math.floor(Math.random() * actors.length)];
-      const newEvt = {
+      const newEvt: AuditEvent = {
         id: `audit-live-${Date.now()}`,
         action: randomAction,
         actor_id: "u-live",
         actor_name: randomActor,
-        actor_role: "inspector" as const,
-        target_type: "project",
-        target_id: "INS-2041",
-        target_name: "Asha Rehabilitation Centre",
-        details: { live: true },
+        actor_role: "INSPECTION_OFFICER",
+        project_id: "INS-2041",
+        metadata: {
+          target_type: "project",
+          target_id: "INS-2041",
+          target_name: "Asha Rehabilitation Centre",
+          live: true,
+        },
         ip_address: "10.0.4.12",
         timestamp: new Date().toISOString(),
       };
@@ -390,15 +383,16 @@ export default function CommandCenterPage() {
             </Link>
           </div>
 
-          <div className="overflow-y-auto flex-1 p-2 space-y-1.5">
+          <Stagger className="overflow-y-auto flex-1 p-2 space-y-1.5">
             {DEMO_PROJECTS.map((p) => (
-              <ProjectCard
-                key={p.id}
-                project={p}
-                onShowRisk={(pId) => setSelectedRiskProjectId(pId)}
-              />
+              <StaggerItem key={p.id}>
+                <ProjectCard
+                  project={p}
+                  onShowRisk={(pId) => setSelectedRiskProjectId(pId)}
+                />
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
 
           {/* Activity Timeline */}
           <div style={{ borderTop: "1px solid var(--border-light)", maxHeight: 240, overflow: "hidden" }}>

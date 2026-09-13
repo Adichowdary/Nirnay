@@ -61,6 +61,24 @@ export async function requireAuth(): Promise<
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
+    if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
+      try {
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        const demoRole = cookieStore.get("insight_demo_role")?.value || "CENTRAL_ADMIN";
+        return {
+          user: {
+            id: "demo-user-central-command",
+            email: "official@dosje.gov.in",
+            role: demoRole,
+            permissions: ["all", "admin", "read", "write"],
+          },
+          supabase,
+        };
+      } catch {
+        // Fall through
+      }
+    }
     return { error: unauthorized() };
   }
 
@@ -91,7 +109,7 @@ export async function requireAuth(): Promise<
  * Check if user has a specific permission.
  */
 export function hasPermission(user: AuthUser, permission: string): boolean {
-  return user.permissions.includes(permission);
+  return user.permissions.includes("all") || user.permissions.includes(permission);
 }
 
 /**

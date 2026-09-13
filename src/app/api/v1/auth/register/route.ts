@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/db";
 import { RegisterSchema } from "@/lib/validation/auth.schema";
-import { ok, fail, serverError, auditLog, zodError } from "@/lib/auth/guard";
+import { ok, fail, serverError, auditLog, zodError, requireAuth } from "@/lib/auth/guard";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +13,17 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password, full_name, phone, role, organization_id, state, district } = parsed.data;
+
+    // Security: Prevent unauthenticated self-assignment of high-privilege administrative roles
+    const PRIVILEGED_ROLES = ["CENTRAL_ADMIN", "STATE_ADMIN", "ADMIN", "DOSJE_OFFICIAL"];
+    if (PRIVILEGED_ROLES.includes(role)) {
+      const currentAuth = await requireAuth();
+      const isAdmin = !("error" in currentAuth) && (currentAuth.user.role === "CENTRAL_ADMIN" || currentAuth.user.role === "ADMIN");
+      if (!isAdmin) {
+        return fail("Administrative roles require provisioning by an authorized administrator", 403);
+      }
+    }
+
     const supabase = await createClient();
 
     const { data, error } = await supabase.auth.signUp({

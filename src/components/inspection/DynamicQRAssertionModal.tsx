@@ -22,6 +22,15 @@ interface DynamicQRAssertionModalProps {
   onVerified: () => void;
 }
 
+function generateQRToken(facilityId: string): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let res = "";
+  for (let i = 0; i < 8; i++) {
+    res += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `${facilityId.toUpperCase()}-${res}`;
+}
+
 export function DynamicQRAssertionModal({
   isOpen,
   onClose,
@@ -30,28 +39,16 @@ export function DynamicQRAssertionModal({
   onVerified,
 }: DynamicQRAssertionModalProps) {
   const [secondsRemaining, setSecondsRemaining] = useState(30);
-  const [dynamicToken, setDynamicToken] = useState("");
+  const [dynamicToken, setDynamicToken] = useState(() => generateQRToken(facilityId));
   const [isScanning, setIsScanning] = useState(false);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
 
   // Generate rotating dynamic token every 30 seconds (TOTP crypto simulation)
   useEffect(() => {
-    const generateToken = () => {
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let res = "";
-      for (let i = 0; i < 8; i++) {
-        res += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return `${facilityId.toUpperCase()}-${res}`;
-    };
-
-    setDynamicToken(generateToken());
-    setSecondsRemaining(30);
-
     const timer = setInterval(() => {
       setSecondsRemaining((prev) => {
         if (prev <= 1) {
-          setDynamicToken(generateToken());
+          setDynamicToken(generateQRToken(facilityId));
           return 30;
         }
         return prev - 1;
@@ -105,7 +102,7 @@ export function DynamicQRAssertionModal({
           <div className="space-y-1">
             <h4 className="font-extrabold text-slate-100 text-sm">{facilityName}</h4>
             <p className="text-xs text-slate-400 max-w-xs">
-              Scan the facility's live display terminal or dynamic sticker QR code to prove on-site presence.
+              Scan the facility&apos;s live display terminal or dynamic sticker QR code to prove on-site presence.
             </p>
           </div>
 

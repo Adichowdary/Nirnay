@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { DEMO_PROJECTS, DEMO_INSPECTORS, DEMO_CCTV_CAMERAS } from "@/lib/demo-data";
-import { Maximize2, Minimize2, MapPin, Video } from "lucide-react";
+import { Maximize2, Minimize2, MapPin, Video, LocateFixed } from "lucide-react";
 import { CCTVMatrixModal } from "@/components/cctv/CCTVMatrixModal";
 import { ExplainableRiskModal } from "@/components/ai/ExplainableRiskModal";
 import { MapFilterPanel, type MapFilters } from "./MapFilterPanel";
@@ -17,7 +17,7 @@ declare global {
 
 interface MapPanelProps {
   onProjectClick?: (projectId: string) => void;
-  projects?: Array<(typeof DEMO_PROJECTS)[0]> | any[];
+  projects?: (typeof DEMO_PROJECTS)[0][];
   filteredProjectIds?: string[];
   layers?: MapLayers;
   onLayersChange?: (layers: MapLayers) => void;
@@ -255,7 +255,7 @@ export function MapPanel({
 
       const sourceProjects = customProjects && customProjects.length > 0 ? customProjects : DEMO_PROJECTS;
       const visibleProjects = filteredProjectIds
-        ? sourceProjects.filter((p: any) => filteredProjectIds.includes(p.id))
+        ? sourceProjects.filter((p: (typeof DEMO_PROJECTS)[0]) => filteredProjectIds.includes(p.id))
         : sourceProjects;
 
       // Project & Risk markers
@@ -483,6 +483,25 @@ export function MapPanel({
     };
   }, []);
 
+  const setPerspective = useCallback((pitchAngle: number, bearingAngle: number) => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.easeTo({
+      pitch: pitchAngle,
+      bearing: bearingAngle,
+      duration: 1000,
+    });
+    setIs3D(pitchAngle > 15);
+  }, []);
+
+  const toggle3D = useCallback(() => {
+    if (!is3D) {
+      setPerspective(60, -20);
+    } else {
+      setPerspective(0, 0);
+    }
+  }, [is3D, setPerspective]);
+
   // Listen to native fullscreen events & Escape key
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -524,7 +543,7 @@ export function MapPanel({
       document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isFullscreen]);
+  }, [isFullscreen, toggle3D]);
 
   const toggleFullscreen = useCallback(async () => {
     try {
@@ -554,25 +573,6 @@ export function MapPanel({
     }
   }, [isFullscreen]);
 
-  const setPerspective = useCallback((pitchAngle: number, bearingAngle: number) => {
-    const map = mapRef.current;
-    if (!map) return;
-    map.easeTo({
-      pitch: pitchAngle,
-      bearing: bearingAngle,
-      duration: 1000,
-    });
-    setIs3D(pitchAngle > 15);
-  }, []);
-
-  const toggle3D = useCallback(() => {
-    if (!is3D) {
-      setPerspective(60, -20);
-    } else {
-      setPerspective(0, 0);
-    }
-  }, [is3D, setPerspective]);
-
   function flyToIndia() {
     mapRef.current?.flyTo({ center: [80.5, 20.5], zoom: 4.8, pitch: 0, bearing: 0, duration: 750 });
   }
@@ -592,11 +592,11 @@ export function MapPanel({
     >
       <div ref={mapContainer} className="absolute inset-0 w-full h-full" style={{ width: "100%", height: "100%" }} />
 
-      {/* Dispatch Toast */}
+      {/* Dispatch Toast — premium spring entrance, no janky bounce */}
       {dispatchAlert && (
         <div
-          className="absolute top-4 left-1/2 -translate-x-1/2 z-[100001] px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-2xl animate-bounce flex items-center gap-2"
-          style={{ background: "linear-gradient(135deg, #E11D48, #991B1B)", border: "1px solid rgba(255,255,255,0.4)" }}
+          className="toast-premium absolute top-4 left-1/2 -translate-x-1/2 z-[100001] px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-2xl flex items-center gap-2"
+          style={{ background: "linear-gradient(135deg, #4F46E5, #1D4ED8)", border: "1px solid rgba(255,255,255,0.4)" }}
         >
           {dispatchAlert}
         </div>
@@ -644,8 +644,8 @@ export function MapPanel({
           {/* Top Left Floating Filter & Layer Overlay */}
           {showControls && (
             <div
-              className={`absolute flex items-start gap-2 ${
-                isFullscreen ? "top-16 left-4" : "top-3 left-3"
+              className={`absolute flex items-center gap-1.5 sm:gap-2 ${
+                isFullscreen ? "top-16 left-2.5 sm:left-4" : "top-2.5 left-2.5 sm:top-3 sm:left-3"
               }`}
               style={{ zIndex: isFullscreen ? 100000 : 20 }}
             >
@@ -664,7 +664,7 @@ export function MapPanel({
           {/* Fullscreen Title Badge (when in Fullscreen mode) */}
           {isFullscreen && (
             <div
-              className="absolute top-4 left-4 flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-900/90 text-white border border-slate-700/80 backdrop-blur-md shadow-2xl pointer-events-none"
+              className="absolute top-4 left-4 hidden sm:flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-900/90 text-white border border-slate-700/80 backdrop-blur-md shadow-2xl pointer-events-none"
               style={{ zIndex: 100000 }}
             >
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -677,74 +677,83 @@ export function MapPanel({
 
           {/* Top Right Floating Toolbar: 2D/3D, Recenter, CCTV Matrix & Fullscreen */}
           <div
-            className="absolute top-3 right-3 flex items-center gap-2"
+            className={`absolute flex items-center gap-1 sm:gap-2 ${
+              isFullscreen ? "top-3 sm:top-4 right-2.5 sm:right-4" : "top-2.5 right-2.5 sm:top-3 sm:right-3"
+            }`}
             style={{ zIndex: isFullscreen ? 100000 : 20 }}
           >
-            <button
-              type="button"
-              onClick={() => setShowCCTVMatrix(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg transition-all cursor-pointer flex items-center gap-1.5 bg-rose-600/90 text-white border border-rose-500/40 backdrop-blur-md hover:bg-rose-600"
-              title="Open 4-Camera Live Surveillance Matrix"
-            >
-              <Video size={14} />
-              <span className="hidden sm:inline">CCTV Matrix</span>
-            </button>
-
             {/* 2D / 3D Mode Selector */}
-            <div className="flex items-center bg-slate-900/90 rounded-xl p-1 border border-slate-700 backdrop-blur-md shadow-lg gap-0.5">
+            <div className="flex items-center bg-slate-950/95 rounded-xl p-0.5 sm:p-1 border border-slate-700/90 backdrop-blur-md shadow-xl gap-0.5">
               <button
                 type="button"
                 onClick={() => setPerspective(0, 0)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
                   !is3D
                     ? "bg-blue-600 text-white shadow-md ring-1 ring-blue-400/50"
-                    : "text-slate-300 hover:text-white hover:bg-slate-800/80"
+                    : "text-slate-300 hover:text-white hover:bg-slate-800"
                 }`}
                 title="Switch to 2D Plan (Top-Down Orthogonal View)"
               >
-                <span>🗺️ 2D Plan</span>
+                <span>2D</span>
+                <span className="hidden sm:inline">Plan</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPerspective(62, -22)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
                   is3D
                     ? "bg-emerald-600 text-white shadow-md ring-1 ring-emerald-400/50"
-                    : "text-slate-300 hover:text-white hover:bg-slate-800/80"
+                    : "text-slate-300 hover:text-white hover:bg-slate-800"
                 }`}
-                title="Switch to 3D Tactical Perspective (62° Tilt — Hold Right-Click / Ctrl+Drag to Rotate)"
+                title="Switch to 3D Tactical Perspective"
               >
-                <span>🌐 3D View</span>
+                <span>3D</span>
+                <span className="hidden sm:inline">View</span>
               </button>
             </div>
 
             <button
               type="button"
               onClick={flyToIndia}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg transition-all cursor-pointer bg-slate-900/90 text-white border border-slate-700 backdrop-blur-md hover:bg-slate-800"
+              className="p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-extrabold shadow-xl transition-all cursor-pointer bg-slate-950/95 text-white border border-slate-700/90 backdrop-blur-md hover:bg-slate-800 flex items-center gap-1"
+              title="Recenter Map to India"
+              aria-label="Recenter map"
             >
-              ⊙ Recenter
+              <LocateFixed size={14} />
+              <span className="hidden sm:inline">Recenter</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowCCTVMatrix(true)}
+              className="p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold shadow-lg transition-all cursor-pointer flex items-center gap-1 bg-rose-600/90 text-white border border-rose-500/40 backdrop-blur-md hover:bg-rose-600"
+              title="Open 4-Camera Live Surveillance Matrix"
+              aria-label="Open CCTV matrix"
+            >
+              <Video size={14} />
+              <span className="hidden sm:inline">CCTV</span>
             </button>
 
             <button
               type="button"
               onClick={toggleFullscreen}
-              className={`px-3 py-2 rounded-xl text-xs font-bold shadow-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold shadow-lg transition-all cursor-pointer flex items-center gap-1 ${
                 isFullscreen
                   ? "bg-rose-600 hover:bg-rose-700 text-white border border-rose-400/30"
                   : "bg-blue-600 hover:bg-blue-700 text-white"
               }`}
               title={isFullscreen ? "Exit Fullscreen Map (ESC)" : "Full Screen GIS Mode"}
+              aria-label="Toggle fullscreen"
             >
               {isFullscreen ? (
                 <>
-                  <Minimize2 size={15} />
-                  <span className="hidden sm:inline">Exit Fullscreen</span>
+                  <Minimize2 size={14} />
+                  <span className="hidden sm:inline">Exit</span>
                 </>
               ) : (
                 <>
-                  <Maximize2 size={15} />
-                  <span className="hidden sm:inline">Full Screen</span>
+                  <Maximize2 size={14} />
+                  <span className="hidden sm:inline">Full</span>
                 </>
               )}
             </button>

@@ -66,10 +66,17 @@ export function FaceLogin({ userId, onSuccess, onFallback }: FaceLoginProps) {
       setCameraError(null);
       setMessage("Camera ready. Initializing face detection...");
     } catch (err) {
+      const name = err instanceof DOMException ? err.name : "";
       setCameraError(
-        err instanceof DOMException && err.name === "NotAllowedError"
-          ? "Camera permission denied. Please allow camera access."
-          : "Camera unavailable. Please check your device."
+        name === "NotAllowedError"
+          ? "Camera permission denied. Allow access in the address bar, then retry."
+          : name === "NotFoundError" || name === "OverconstrainedError"
+            ? "No webcam detected. Use password login instead."
+            : name === "NotReadableError"
+              ? "Camera is busy in another app. Close it and retry."
+              : name === "SecurityError"
+                ? "Camera needs HTTPS or localhost. Use password login instead."
+                : "Camera unavailable. Please check your device."
       );
       setState("FAILED");
     }
@@ -128,10 +135,10 @@ export function FaceLogin({ userId, onSuccess, onFallback }: FaceLoginProps) {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    if (!ctx || video.readyState < 2 || !videoReadyRef.current) return false;
+    if (!ctx || video.readyState < 2 || !videoReadyRef.current || video.videoWidth === 0) return false;
 
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -187,10 +194,16 @@ export function FaceLogin({ userId, onSuccess, onFallback }: FaceLoginProps) {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    if (!ctx || video.readyState < 2) return;
+    if (!ctx) return;
+    // Never capture a blank frame: wait for real video data first
+    if (video.readyState < 2 || video.videoWidth === 0) {
+      setState("DETECTING_FACE");
+      setMessage("Camera warming up — hold steady, capturing shortly…");
+      return;
+    }
 
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 

@@ -6,6 +6,7 @@ import {
   ClipboardCheck, Plus, Search, User, ArrowRight,
 } from "lucide-react";
 import { useState } from "react";
+import { Stagger, StaggerItem } from "@/components/motion/MicroInteractions";
 
 const MOCK_INSPECTIONS = [
   {
@@ -98,30 +99,31 @@ export default function InspectionsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+      <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         {[
           { label: "Total", value: 94, color: "var(--text-primary)" },
           { label: "Completed", value: 87, color: "var(--green-500)" },
           { label: "In Progress", value: 4, color: "var(--amber-500)" },
           { label: "Assigned", value: 3, color: "var(--blue-500)" },
         ].map(({ label, value, color }) => (
-          <div
-            key={label}
-            className="rounded-xl p-3"
-            style={{
-              background: "var(--surface-card)",
-              border: "1px solid var(--border-light)",
-            }}
-          >
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>
-              {label}
-            </p>
-            <p className="text-xl font-bold tabular" style={{ color }}>
-              {value}
-            </p>
-          </div>
+          <StaggerItem key={label} className="micro-lift rounded-xl">
+            <div
+              className="rounded-xl p-3"
+              style={{
+                background: "var(--surface-card)",
+                border: "1px solid var(--border-light)",
+              }}
+            >
+              <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "var(--text-secondary)" }}>
+                {label}
+              </p>
+              <p className="text-xl font-bold tabular" style={{ color }}>
+                {value}
+              </p>
+            </div>
+          </StaggerItem>
         ))}
-      </div>
+      </Stagger>
 
       {/* Filters */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
@@ -234,7 +236,7 @@ export default function InspectionsPage() {
                     <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
                       {insp.project_name}
                     </h3>
-                    <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                    <p className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
                       {insp.district}
                     </p>
                   </div>
@@ -244,11 +246,11 @@ export default function InspectionsPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <User size={11} style={{ color: "var(--text-muted)" }} />
-                    <span className="text-[11px]" style={{ color: "var(--text-secondary)" }}>
+                    <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
                       {insp.inspector_name}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>
+                  <span className="text-[11px] font-mono font-medium" style={{ color: "var(--text-secondary)" }}>
                     {formatRelativeTime(insp.assigned_at)}
                   </span>
                 </div>

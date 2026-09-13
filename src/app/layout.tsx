@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { DemoModeBanner } from "@/components/shell/DemoModeBanner";
 import { Providers } from "@/components/shell/Providers";
+import { AppLoadingAnimation } from "@/components/ui/AppLoadingAnimation";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${inter.variable} antialiased`}>
         <a
           href="#main-content"
@@ -43,6 +44,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <Providers>
+          <AppLoadingAnimation />
           <DemoModeBanner />
           {children}
         </Providers>

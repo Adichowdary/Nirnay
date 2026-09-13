@@ -229,11 +229,11 @@ export default function InspectorWorkspacePage() {
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
     setSubmissionStepText("1/3 Generating SHA-256 Merkle root of all photo and video proofs...");
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 120));
     setSubmissionStepText("2/3 Applying Inspector ECDSA SECP256K1 digital signature...");
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 120));
     setSubmissionStepText("3/3 Transmitting tamper-sealed packet to central sovereign vault...");
-    await new Promise((r) => setTimeout(r, 450));
+    await new Promise((r) => setTimeout(r, 120));
     setIsSubmitting(false);
     setMissionStatus("COMPLETED");
 
@@ -843,17 +843,17 @@ export default function InspectorWorkspacePage() {
                         </div>
 
                         {/* Geo Coordinates */}
-                        <div className="p-1.5 rounded bg-slate-100 dark:bg-slate-900/60 font-mono text-[9px] text-slate-600 dark:text-slate-400 truncate">
-                          <span className="text-emerald-500 font-bold mr-1">GEO:</span>
+                        <div className="p-1.5 rounded bg-slate-100 dark:bg-slate-900/80 font-mono text-[9px] text-slate-800 dark:text-slate-200 font-semibold truncate border border-slate-200 dark:border-slate-800">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold mr-1">GEO:</span>
                           {item.geoTag}
                         </div>
 
                         {/* SHA-256 Stamp */}
-                        <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-slate-800 text-[9px] font-mono text-slate-500">
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-slate-800 text-[9px] font-mono text-slate-600 dark:text-slate-400 font-medium">
                           <span className="truncate max-w-[170px]" title={item.sha256}>
                             HASH: {item.sha256.substring(0, 18)}...
                           </span>
-                          <span className="text-emerald-500 font-bold">SEALED</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-black">SEALED</span>
                         </div>
                       </div>
                     </div>
@@ -1152,13 +1152,13 @@ export default function InspectorWorkspacePage() {
             <div className="p-4 space-y-2.5 bg-slate-50 dark:bg-slate-900/50">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                 <div className="p-2 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                  <span className="text-[10px] text-slate-400 block font-sans">Cadastral Location Stamp</span>
+                  <span className="text-[10px] text-slate-700 dark:text-slate-300 font-extrabold block font-sans">Cadastral Location Stamp</span>
                   <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold text-[10px]">
                     {selectedEvidencePreview.geoTag}
                   </span>
                 </div>
                 <div className="p-2 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                  <span className="text-[10px] text-slate-400 block font-sans">Classification &amp; Integrity</span>
+                  <span className="text-[10px] text-slate-700 dark:text-slate-300 font-extrabold block font-sans">Classification &amp; Integrity</span>
                   <span className="font-bold text-slate-800 dark:text-slate-200 text-[10px]">
                     {selectedEvidencePreview.isSupplementary ? "Post-Audit Supplementary Packet" : "Primary Statutory Mission Evidence"}
                   </span>
@@ -1168,8 +1168,8 @@ export default function InspectorWorkspacePage() {
               {/* SHA-256 Hash Display with Copy */}
               <div className="p-2 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
                 <div className="truncate">
-                  <span className="text-[9px] text-slate-400 block font-sans">SHA-256 Cryptographic Fingerprint</span>
-                  <code className="text-[10px] font-mono text-blue-500 select-all">
+                  <span className="text-[10px] text-slate-700 dark:text-slate-300 font-extrabold block font-sans">SHA-256 Cryptographic Fingerprint</span>
+                  <code className="text-[10px] font-mono text-blue-600 dark:text-blue-400 font-bold select-all">
                     {selectedEvidencePreview.sha256}
                   </code>
                 </div>
@@ -1179,16 +1179,16 @@ export default function InspectorWorkspacePage() {
                     navigator.clipboard?.writeText(selectedEvidencePreview.sha256);
                     alert("SHA-256 fingerprint copied to clipboard for independent cryptographic verification.");
                   }}
-                  className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 hover:bg-blue-500 hover:text-white text-slate-600 dark:text-slate-300 text-[10px] font-semibold flex items-center gap-1 transition shrink-0"
+                  className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 hover:bg-blue-500 hover:text-white text-slate-700 dark:text-slate-200 text-[10px] font-bold flex items-center gap-1 transition shrink-0 cursor-pointer"
                 >
                   <Copy size={11} />
                   <span>Copy Hash</span>
                 </button>
               </div>
 
-              <div className="flex items-center justify-between text-[9px] text-slate-400 pt-1">
+              <div className="flex items-center justify-between text-[10px] text-slate-600 dark:text-slate-300 font-semibold pt-1">
                 <span>Compliant with Indian Evidence Act Sec 65B &amp; DPDP Act 2023</span>
-                <span className="text-emerald-500 font-bold">INTEGRITY VERIFIED ✓</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-black">INTEGRITY VERIFIED ✓</span>
               </div>
             </div>
           </div>

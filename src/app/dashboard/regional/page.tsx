@@ -57,7 +57,8 @@ export default function StateAdminPortalPage() {
   const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
-    setCurrentTime(Date.now());
+    const timer = setTimeout(() => setCurrentTime(Date.now()), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Modals
@@ -230,14 +231,14 @@ export default function StateAdminPortalPage() {
             <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400 text-[11px] font-black uppercase tracking-wider">
               Level 2: State Operations &amp; Administration
             </span>
-            <span className="text-xs text-muted font-medium">
-              Jurisdiction: <strong className="text-primary">{currentStateDef.name}</strong>
+            <span className="text-xs text-slate-300 font-semibold">
+              Jurisdiction: <strong className="text-white">{currentStateDef.name}</strong>
             </span>
           </div>
-          <h1 className="text-2xl font-black text-primary tracking-tight">
+          <h1 className="text-2xl font-black text-white tracking-tight">
             State Administrative Command Portal
           </h1>
-          <p className="text-xs text-muted mt-1 max-w-2xl">
+          <p className="text-xs text-slate-300 mt-1 max-w-2xl font-medium">
             State Admin operational hub for all districts in {currentStateDef.name}. Manage facilities, assign field inspection squads, track SLA countdowns, and resolve operational issues.
           </p>
         </div>
@@ -250,7 +251,7 @@ export default function StateAdminPortalPage() {
               setSelectedState(e.target.value);
               setSelectedDistrict("ALL");
             }}
-            className="input-field text-xs py-2 px-3 bg-card font-bold text-blue-500 border-blue-500/30 cursor-pointer"
+            className="input-field text-xs py-2 px-3 bg-slate-900 text-white font-bold border-blue-400/40 cursor-pointer"
           >
             {SUPPORTED_INDIAN_STATES.map((s) => (
               <option key={s.id} value={s.name}>
@@ -298,7 +299,7 @@ export default function StateAdminPortalPage() {
             className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition shrink-0 ${
               selectedDistrict === "ALL"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                : "bg-muted/40 hover:bg-muted text-secondary border border-base"
+                : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700"
             }`}
           >
             All Districts ({currentStateDef.districts.length})
@@ -313,7 +314,7 @@ export default function StateAdminPortalPage() {
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition shrink-0 ${
                   isSelected
                     ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                    : "bg-muted/40 hover:bg-muted text-secondary border border-base"
+                    : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700"
                 }`}
               >
                 {district}
@@ -402,20 +403,20 @@ export default function StateAdminPortalPage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
-                <span className="text-slate-500 font-bold uppercase text-[10px] block">Project:</span>
+                <span className="text-slate-300 font-bold uppercase text-[10px] block">Project:</span>
                 <span className="font-bold text-white">Asha Rehabilitation Centre</span>
               </div>
               <div>
-                <span className="text-slate-500 font-bold uppercase text-[10px] block">District:</span>
+                <span className="text-slate-300 font-bold uppercase text-[10px] block">District:</span>
                 <span className="font-bold text-amber-400">Guntur</span>
               </div>
               <div>
-                <span className="text-slate-500 font-bold uppercase text-[10px] block">Audit Squad:</span>
+                <span className="text-slate-300 font-bold uppercase text-[10px] block">Audit Squad:</span>
                 <span className="font-bold text-emerald-400">Squad-07 (Priya Mehta)</span>
               </div>
               <div>
-                <span className="text-slate-500 font-bold uppercase text-[10px] block">Date:</span>
-                <span className="font-mono text-slate-300">30 Aug 2026</span>
+                <span className="text-slate-300 font-bold uppercase text-[10px] block">Date:</span>
+                <span className="font-mono text-slate-200 font-semibold">30 Aug 2026</span>
               </div>
             </div>
 
@@ -424,7 +425,7 @@ export default function StateAdminPortalPage() {
               <span className="text-[10px] font-mono font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1">
                 <Shield size={12} /> Grounded AI Summary:
               </span>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-slate-200 leading-relaxed font-medium">
                 Audit identified physical headcount discrepancy (51 present vs 80 registered quota) and CCTV Camera 02 disconnected at power injector junction box. 10-Point statutory compliance score: <strong>68%</strong>.
               </p>
             </div>
@@ -433,19 +434,19 @@ export default function StateAdminPortalPage() {
             <div className="grid grid-cols-4 gap-2 text-center text-xs">
               <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
                 <span className="block font-black text-blue-400">PHOTO — 12</span>
-                <span className="text-[10px] text-slate-500 font-mono">Geo-tagged</span>
+                <span className="text-[10px] text-slate-300 font-mono font-medium">Geo-tagged</span>
               </div>
               <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
                 <span className="block font-black text-rose-400">VIDEO — 3</span>
-                <span className="text-[10px] text-slate-500 font-mono">RTSP stream</span>
+                <span className="text-[10px] text-slate-300 font-mono font-medium">RTSP stream</span>
               </div>
               <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
                 <span className="block font-black text-amber-400">AUDIO — 2</span>
-                <span className="text-[10px] text-slate-500 font-mono">Transcribed</span>
+                <span className="text-[10px] text-slate-300 font-mono font-medium">Transcribed</span>
               </div>
               <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
                 <span className="block font-black text-purple-400">DOCUMENTS — 5</span>
-                <span className="text-[10px] text-slate-500 font-mono">SHA-256</span>
+                <span className="text-[10px] text-slate-300 font-mono font-medium">SHA-256</span>
               </div>
             </div>
 

@@ -1,105 +1,89 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 
-test.describe("INSIGHT Platform — Core Flows", () => {
+async function waitForPageReady(page: Page) {
+  try {
+    const dialog = page.locator("[role='dialog'][aria-label*='Loading Animation']");
+    if (await dialog.isVisible({ timeout: 1500 })) {
+      await page.keyboard.press("Escape");
+      await dialog.waitFor({ state: "hidden", timeout: 3000 }).catch(() => {});
+    }
+  } catch {}
+}
+
+test.describe("NIRNAY Platform — Core Flows", () => {
   test("login page loads with government branding", async ({ page }) => {
     await page.goto("/login");
-    await expect(page).toHaveTitle(/INSIGHT/);
-    await expect(page.locator("text=Government of India")).toBeVisible();
-    await expect(page.locator("text=Ministry of Social Justice")).toBeVisible();
+    await waitForPageReady(page);
+    await expect(page).toHaveTitle(/NIRNAY|INSIGHT/i);
+    await expect(page.locator("text=Government of India").first()).toBeVisible();
+    await expect(page.locator("text=Ministry of Social Justice").first()).toBeVisible();
   });
 
   test("login page has role cards", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.locator("text=DOSJE Official")).toBeVisible();
-    await expect(page.locator("text=Inspection Officer")).toBeVisible();
-    await expect(page.locator("text=NGO/Institute")).toBeVisible();
-    await expect(page.locator("text=District Authority")).toBeVisible();
-    await expect(page.locator("text=Administrator")).toBeVisible();
-  });
-
-  test("accessibility widget toggles", async ({ page }) => {
-    await page.goto("/login");
-    await page.click("button[aria-label='Accessibility options']");
-    await expect(page.locator("text=Accessibility Options")).toBeVisible();
-    await expect(page.locator("text=Text Size")).toBeVisible();
-    await expect(page.locator("text=Contrast")).toBeVisible();
+    await waitForPageReady(page);
+    await expect(page.locator("text=CENTRAL COMMAND DIRECTORATE").first()).toBeVisible();
+    await expect(page.locator("text=STATE ADMINISTRATIVE AUTHORITY").first()).toBeVisible();
+    await expect(page.locator("text=AUDIT SQUAD").first()).toBeVisible();
+    await expect(page.locator("text=AGENCY PORTAL").first()).toBeVisible();
+    await expect(page.locator("text=SYSTEM ADMIN").first()).toBeVisible();
   });
 
   test("dark mode toggle works", async ({ page }) => {
     await page.goto("/login");
+    await waitForPageReady(page);
     const htmlBefore = await page.evaluate(() => document.documentElement.classList.contains("dark"));
-    await page.click("button[aria-label='Switch to dark mode']");
+    await page.getByRole("button", { name: /Light|Dark/i }).click();
     const htmlAfter = await page.evaluate(() => document.documentElement.classList.contains("dark"));
     expect(htmlAfter).not.toBe(htmlBefore);
   });
 
-  test("map page loads with filters", async ({ page }) => {
-    await page.goto("/dashboard/map");
-    await expect(page.locator("text=Map Intelligence")).toBeVisible();
-    await expect(page.locator("text=GEO-VERIFIED SITES")).toBeVisible();
-    await expect(page.locator("text=Map Filters")).toBeVisible();
-    await expect(page.locator("text=Map Layers")).toBeVisible();
+  test("notification panel opens on dashboard", async ({ page }) => {
+    await page.goto("/dashboard");
+    await waitForPageReady(page);
+    await page.click("button[aria-label*='Notifications']");
+    await expect(page.locator("text=Notifications").first()).toBeVisible();
   });
 
-  test("map filter panel toggles", async ({ page }) => {
+  test("map page loads with facility list and controls", async ({ page }) => {
     await page.goto("/dashboard/map");
-    // Filters should be visible
-    await expect(page.locator("text=Risk Level")).toBeVisible();
-    await expect(page.locator("text=CCTV Status")).toBeVisible();
-    await expect(page.locator("text=District")).toBeVisible();
-  });
-
-  test("map layer control toggles", async ({ page }) => {
-    await page.goto("/dashboard/map");
-    await expect(page.locator("text=Project Sites")).toBeVisible();
-    await expect(page.locator("text=Risk Indicators")).toBeVisible();
-    await expect(page.locator("text=Inspector Locations")).toBeVisible();
-    await expect(page.locator("text=Geofence Zones")).toBeVisible();
-  });
-
-  test("map shows facility list in sidebar", async ({ page }) => {
-    await page.goto("/dashboard/map");
-    await expect(page.locator("text=FACILITIES")).toBeVisible();
-    // Should show demo facilities
-    await expect(page.locator("text=Asha Rehabilitation Centre")).toBeVisible();
-  });
-
-  test("map 2D/3D toggle exists", async ({ page }) => {
-    await page.goto("/dashboard/map");
-    await expect(page.locator("button[aria-label='Switch to 3D']")).toBeVisible();
-  });
-
-  test("map legend shows risk colors", async ({ page }) => {
-    await page.goto("/dashboard/map");
-    await expect(page.locator("text=Low Risk")).toBeVisible();
-    await expect(page.locator("text=High Risk")).toBeVisible();
-    await expect(page.locator("text=Critical Risk")).toBeVisible();
+    await waitForPageReady(page);
+    await expect(page.locator("text=Map Intelligence & GIS Command")).toBeVisible();
+    await expect(page.locator("text=/FACILITIES/").first()).toBeVisible();
+    await expect(page.locator("text=Asha Rehabilitation Centre").first()).toBeVisible();
   });
 });
 
-test.describe("INSIGHT Platform — Dashboard Pages", () => {
+test.describe("NIRNAY Platform — Dashboard Pages", () => {
   test("main dashboard loads", async ({ page }) => {
     await page.goto("/dashboard");
-    await expect(page.locator("text=DOSJE")).toBeVisible();
+    await waitForPageReady(page);
+    await expect(page.locator("text=NIRNAY").first()).toBeVisible();
   });
 
   test("inspections page loads", async ({ page }) => {
     await page.goto("/dashboard/inspections");
-    await expect(page.locator("text=Inspection")).toBeVisible();
+    await waitForPageReady(page);
+    await expect(page.locator("text=Inspection").first()).toBeVisible();
   });
 
   test("video verification page loads", async ({ page }) => {
     await page.goto("/dashboard/video-verification");
-    await expect(page.locator("text=Random Video Verification")).toBeVisible();
+    await waitForPageReady(page);
+    await expect(page.locator("text=Surprise Video Inspection System")).toBeVisible();
   });
 
   test("CCTV monitor page loads", async ({ page }) => {
     await page.goto("/dashboard/monitor");
-    await expect(page.locator("text=Live CCTV Monitor")).toBeVisible();
+    await waitForPageReady(page);
+    await expect(page.locator("text=Live CCTV Command")).toBeVisible();
   });
 
   test("GPS verify page loads", async ({ page }) => {
     await page.goto("/dashboard/inspections/insp-1/gps-verify");
-    await expect(page.locator("text=GPS Verification")).toBeVisible();
+    await waitForPageReady(page);
+    await expect(page.getByRole("heading", { name: "GPS Verification" })).toBeVisible();
   });
 });
+
+

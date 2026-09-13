@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/shell/Providers";
 import { DEMO_NOTIFICATIONS } from "@/lib/demo-data";
@@ -22,6 +22,8 @@ import { CommandPalette } from "@/components/shared/CommandPalette";
 import { NotificationPanel } from "@/components/shared/NotificationPanel";
 import { generateMinistryDossierPDF } from "@/lib/reports/pdf-generator";
 
+const emptySubscribe = () => () => {};
+
 interface TopBarProps {
   title?: string;
   subtitle?: string;
@@ -39,10 +41,17 @@ export function TopBar({
   const router = useRouter();
   const [showPalette, setShowPalette] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const handleSignOut = async () => {
     await signOut();
-    router.push("/login");
+    if (typeof document !== "undefined") {
+      document.cookie = "insight_demo_role=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("insight_active_role");
+      window.location.href = "/login?signout=true";
+    }
   };
 
   const today = new Date().toLocaleDateString("en-IN", {
@@ -56,8 +65,9 @@ export function TopBar({
 
   return (
     <>
+      <div className="tricolor-strip" />
       <header
-        className="flex items-center justify-between px-4 sm:px-6 flex-shrink-0"
+        className="flex items-center justify-between px-4 sm:px-6 flex-shrink-0 relative"
         style={{
           height: "var(--header-h)",
           minHeight: "var(--header-h)",
@@ -71,7 +81,7 @@ export function TopBar({
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
-            className="md:hidden p-2 rounded-lg transition-colors cursor-pointer"
+            className="md:hidden p-2 rounded-lg transition-colors cursor-pointer active:scale-95"
             style={{
               background: "var(--surface-secondary)",
               color: "var(--text-secondary)",
@@ -83,18 +93,21 @@ export function TopBar({
           <div>
             <div className="flex items-center gap-2">
               <h1
-                className="font-semibold leading-tight"
+                className="font-bold leading-tight flex items-center gap-2"
                 style={{
                   fontSize: "var(--text-sm)",
                   color: "var(--text-primary)",
                   letterSpacing: "var(--tracking-tight)",
                 }}
               >
-                {title}
+                <span>{title}</span>
+                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  DoSJE Central Command
+                </span>
               </h1>
               {/* ISRO Bhuvan Satellite Lock Indicator */}
               <span className="hidden xl:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                <Radio size={10} className="animate-pulse" /> ISRO Bhuvan GNSS (±8.2m)
+                <Radio size={10} className="animate-pulse text-emerald-500" /> ISRO Bhuvan GNSS (±8.2m)
               </span>
             </div>
             <p
@@ -146,7 +159,16 @@ export function TopBar({
           <button
             type="button"
             onClick={() => generateMinistryDossierPDF({ generatedBy: userProfile?.full_name || "Official Command", role: userRole || "CENTRAL_ADMIN" })}
-            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-base bg-muted/40 hover:bg-muted text-secondary text-xs font-semibold cursor-pointer transition"
+            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl cursor-pointer transition"
+            style={{
+              border: "1px solid var(--border-default)",
+              background: "var(--surface-secondary)",
+              color: "var(--text-secondary)",
+              fontSize: "var(--text-xs)",
+              fontWeight: 600,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface-tertiary)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "var(--surface-secondary)"; }}
             title="Download Ministry Audit Dossier"
           >
             <Download size={13} />
@@ -215,12 +237,13 @@ export function TopBar({
             style={{ color: "var(--text-secondary)" }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface-secondary)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={mounted && isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            suppressHydrationWarning
           >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            {mounted && isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
-          {/* Sign Out */}
+          {/* Sign Out (Desktop) */}
           <button
             type="button"
             onClick={handleSignOut}
@@ -237,6 +260,18 @@ export function TopBar({
           >
             <LogOut size={13} />
             <span>Sign Out</span>
+          </button>
+
+          {/* Sign Out (Mobile) */}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="flex md:hidden p-2 rounded-lg transition-colors cursor-pointer"
+            style={{ color: "var(--color-danger)" }}
+            aria-label="Sign out"
+            title="Sign Out"
+          >
+            <LogOut size={17} />
           </button>
 
           {/* Avatar */}

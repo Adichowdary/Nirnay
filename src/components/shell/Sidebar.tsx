@@ -32,7 +32,8 @@ import {
   Database,
   Ghost,
   MessageSquareWarning,
-  Boxes,
+  Users,
+  AlertTriangle,
 } from "lucide-react";
 
 import Image from "next/image";
@@ -156,9 +157,24 @@ const ALL_NAV_CONFIG: Record<string, NavItemConfig> = {
     icon: ClipboardCheck,
   },
   "/dashboard/organization": {
-    href: "/dashboard/agency",
-    label: "Agency Portal",
+    href: "/dashboard/organization",
+    label: "Grantee Org Portal",
     icon: Building2,
+  },
+  "/dashboard/admin/issues": {
+    href: "/dashboard/admin/issues",
+    label: "SLA Issues & Escalation",
+    icon: AlertTriangle,
+    roleSpecificLabels: {
+      STATE_ADMIN: "State SLA Issues",
+      CENTRAL_ADMIN: "National SLA Escalations",
+      ADMIN: "Issues & Grievances",
+    },
+  },
+  "/dashboard/beneficiaries": {
+    href: "/dashboard/beneficiaries",
+    label: "Beneficiary Registry",
+    icon: Users,
   },
   "/dashboard/regional": {
     href: "/dashboard/regional",
@@ -188,16 +204,16 @@ export function Sidebar() {
 
   const roleLogo =
     role === "CENTRAL_ADMIN" || role === "DOSJE_OFFICIAL"
-      ? "/images/2 image for dosje official .jpeg"
-      : role === "INSPECTION_OFFICER"
-      ? "/images/3 image.jpeg"
-      : role === "NGO_INSTITUTE" || role === "PROJECT_ADMIN"
-      ? "/images/4 image .jpeg"
+      ? "/images/1 image-central admin.jpeg"
       : role === "STATE_ADMIN"
-      ? "/images/5 imgage .jpeg"
+      ? "/images/2 image state administrative.jpeg"
+      : role === "INSPECTION_OFFICER" || role === "AUDIT_SQUAD"
+      ? "/images/3 Audit squad.jpeg"
+      : role === "NGO_INSTITUTE" || role === "PROJECT_ADMIN" || role === "AGENCY_PORTAL"
+      ? "/images/4 Agency portal.jpeg"
       : role === "ADMIN"
-      ? "/images/6 image .jpeg"
-      : "/images/main_logo.png";
+      ? "/images/5 system admin.jpeg"
+      : "/images/1 image-central admin.jpeg";
 
   const navItems = allowedHrefs
     .map((href) => ALL_NAV_CONFIG[href])
@@ -206,9 +222,12 @@ export function Sidebar() {
   const handleSignOut = async () => {
     await signOut();
     if (typeof document !== "undefined") {
-      document.cookie = "insight_demo_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie = "insight_demo_role=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     }
-    router.push("/login");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("insight_active_role");
+      window.location.href = "/login?signout=true";
+    }
   };
 
   const displayName = userProfile?.full_name?.replace(" [DEMO]", "") ?? meta.label;
@@ -271,6 +290,9 @@ export function Sidebar() {
               >
                 NIRNAY
               </div>
+              <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 truncate">
+                Govt. of India • DoSJE
+              </div>
               <div
                 className="text-[9px] font-bold uppercase tracking-widest truncate"
                 style={{ color: meta.color }}
@@ -330,6 +352,7 @@ export function Sidebar() {
                 <Link
                   key={href}
                   href={href}
+                  prefetch={false}
                   className={cn("nav-item", isActive && "active")}
                   title={isSidebarCollapsed ? displayLabel : undefined}
                   aria-current={isActive ? "page" : undefined}
@@ -391,7 +414,7 @@ export function Sidebar() {
         <button
           type="button"
           onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
-          className="absolute top-1/2 -right-4 -translate-y-1/2 rounded-full w-8 h-8 flex items-center justify-center shadow-md cursor-pointer transition-colors hover:bg-secondary"
+          className="micro-press absolute top-1/2 -right-4 -translate-y-1/2 rounded-full w-8 h-8 flex items-center justify-center shadow-md cursor-pointer transition-colors hover:bg-secondary"
           style={{
             background: "var(--surface-card)",
             border: "1px solid var(--border-default)",
@@ -428,7 +451,7 @@ export function Sidebar() {
                   className="w-9 h-9 rounded-xl flex items-center justify-center filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.3)]"
                 >
                   <Image
-                    src="/images/main_logo.png"
+                    src="/images/1 image-central admin.jpeg"
                     alt="NIRNAY Logo"
                     width={36}
                     height={36}
@@ -502,6 +525,7 @@ export function Sidebar() {
                     <Link
                       key={href}
                       href={href}
+                      prefetch={false}
                       className={cn("nav-item", isActive && "active")}
                       aria-current={isActive ? "page" : undefined}
                       onClick={() => setMobileMenuOpen(false)}

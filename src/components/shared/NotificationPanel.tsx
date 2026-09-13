@@ -4,6 +4,7 @@ import { DEMO_NOTIFICATIONS } from "@/lib/demo-data";
 import { formatRelativeTime } from "@/lib/utils";
 import { X, AlertTriangle, Info, AlertCircle, Settings } from "lucide-react";
 import type { NotificationPriority } from "@/types";
+import { Stagger, StaggerItem } from "@/components/motion/MicroInteractions";
 
 const PRIORITY_STYLES: Record<NotificationPriority, { bg: string; text: string; icon: React.FC<{ size: number }> }> = {
   critical: { bg: "var(--red-tint)", text: "var(--red-strong)", icon: ({ size }) => <AlertCircle size={size} /> },
@@ -43,13 +44,13 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1" aria-live="polite">
+        <Stagger className="overflow-y-auto flex-1" aria-live="polite">
           {DEMO_NOTIFICATIONS.map((n) => {
             const style = PRIORITY_STYLES[n.priority];
             const Icon = style.icon;
             return (
+              <StaggerItem key={n.id}>
               <button
-                key={n.id}
                 type="button"
                 className="w-full text-left px-4 py-3 border-b border-base last:border-0 hover:bg-secondary focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors cursor-pointer"
                 style={{ background: n.is_read ? undefined : "rgba(46,107,255,0.02)" }}
@@ -108,9 +109,10 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
               </button>
+              </StaggerItem>
             );
           })}
-        </div>
+        </Stagger>
 
         <div className="px-4 py-2 border-t border-base text-center">
           <button

@@ -142,7 +142,7 @@ export function MapFilterPanel({
   totalCount,
   filteredCount,
 }: MapFilterPanelProps) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const activeFilterCount =
     filters.risk.length +
     filters.inspection.length +
@@ -151,13 +151,13 @@ export function MapFilterPanel({
     filters.district.length;
 
   const toggle = (key: keyof MapFilters, value: string) => {
+    const current = filters[key];
+    if (!Array.isArray(current)) return;
     onFiltersChange({
       ...filters,
-      [key]: Array.isArray(filters[key])
-        ? (filters[key] as string[]).includes(value)
-          ? (filters[key] as string[]).filter((v) => v !== value)
-          : [...(filters[key] as string[]), value]
-        : filters[key],
+      [key]: current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value],
     });
   };
 
@@ -168,17 +168,17 @@ export function MapFilterPanel({
       <button
         type="button"
         onClick={() => setCollapsed(false)}
-        className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all"
+        className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl cursor-pointer transition-all shadow-md backdrop-blur-md"
         style={{
-          background: activeFilterCount > 0 ? "var(--blue-600)" : "var(--surface-card)",
-          color: activeFilterCount > 0 ? "#fff" : "var(--text-primary)",
-          border: `1px solid ${activeFilterCount > 0 ? "var(--blue-600)" : "var(--border-light)"}`,
+          background: activeFilterCount > 0 ? "var(--blue-600)" : "rgba(15, 23, 42, 0.85)",
+          color: "#fff",
+          border: `1px solid ${activeFilterCount > 0 ? "var(--blue-500)" : "rgba(255,255,255,0.2)"}`,
           fontSize: "var(--text-xs)",
-          fontWeight: 600,
+          fontWeight: 700,
         }}
       >
-        <Filter size={14} />
-        Filters
+        <Filter size={13} />
+        <span>Filters</span>
         {activeFilterCount > 0 && (
           <span
             className="px-1.5 py-0.5 rounded-full"
@@ -192,16 +192,20 @@ export function MapFilterPanel({
   }
 
   return (
-    <div
-      className="flex flex-col rounded-xl overflow-hidden"
-      style={{
-        background: "var(--surface-card)",
-        border: "1px solid var(--border-light)",
-        width: 280,
-        maxHeight: "calc(100dvh - 160px)",
-        boxShadow: "var(--shadow-lg)",
-      }}
-    >
+    <>
+      {/* Mobile backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-xs sm:hidden z-40"
+        onClick={() => setCollapsed(true)}
+      />
+      <div
+        className="flex flex-col rounded-2xl overflow-hidden shadow-2xl z-50 fixed sm:static inset-x-3 top-16 sm:inset-x-auto sm:top-auto w-[calc(100vw-24px)] max-w-sm sm:w-[280px]"
+        style={{
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-light)",
+          maxHeight: "calc(100dvh - 140px)",
+        }}
+      >
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-base">
         <div className="flex items-center gap-2">
@@ -334,5 +338,6 @@ export function MapFilterPanel({
         </button>
       </div>
     </div>
+  </>
   );
 }

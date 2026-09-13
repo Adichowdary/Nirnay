@@ -158,11 +158,10 @@ export function CCTVOccupancyHeatmap({
         ctx.stroke();
       }
     }
-
-    animationFrameRef.current = requestAnimationFrame(renderHeatmap);
   }, [detectedBoxes, heatmapEnabled, gridEnabled, intensity]);
 
   useEffect(() => {
+    let animId: number;
     const handleResize = () => {
       if (canvasRef.current && videoRef.current) {
         canvasRef.current.width = videoRef.current.clientWidth || 640;
@@ -171,11 +170,16 @@ export function CCTVOccupancyHeatmap({
     };
     handleResize();
     window.addEventListener("resize", handleResize);
-    animationFrameRef.current = requestAnimationFrame(renderHeatmap);
+
+    const loop = () => {
+      renderHeatmap();
+      animId = requestAnimationFrame(loop);
+    };
+    animId = requestAnimationFrame(loop);
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (animId) cancelAnimationFrame(animId);
     };
   }, [renderHeatmap]);
 

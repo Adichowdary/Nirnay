@@ -48,12 +48,17 @@ export async function GET(request: NextRequest, { params }: Props) {
     headers.set("Cache-Control", "public, max-age=31536000, immutable");
     headers.set("X-Sha256-Checksum", file.sha256Hash);
 
-    // If download flag is provided
-    if (url.searchParams.get("download") === "true") {
-      headers.set("Content-Disposition", `attachment; filename="${file.filename}"`);
-    } else {
-      headers.set("Content-Disposition", `inline; filename="${file.filename}"`);
-    }
+    // Sanitize filename to prevent HTTP header injection (CRLF / quotes)
+    const sanitizedFilename = (file.filename || "file")
+      .replace(/[\r\n"\\;]/g, "_")
+      .slice(0, 150);
+    const encodedFilename = encodeURIComponent(file.filename || "file");
+    const dispositionType = url.searchParams.get("download") === "true" ? "attachment" : "inline";
+
+    headers.set(
+      "Content-Disposition",
+      `${dispositionType}; filename="${sanitizedFilename}"; filename*=UTF-8''${encodedFilename}`
+    );
 
     return new NextResponse(buffer, {
       status: 200,

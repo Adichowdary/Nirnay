@@ -119,7 +119,7 @@ function DispatchConfirmModal({
     setTimeout(() => {
       setAcknowledging(false);
       onConfirm();
-    }, 600);
+    }, 120);
   }
 
   return (
@@ -334,7 +334,7 @@ export default function GrievanceTriagePage() {
         `🚨 NEW CITIZEN WHISTLEBLOWER ALERT: ${newGrievance.facilityName} triaged with severity 94/100 (CRITICAL FRAUD).`
       );
       setTimeout(() => setActionNotice(null), 6000);
-    }, 1800);
+    }, 250);
   };
 
   const handleRequestDispatch = (g: CitizenGrievance) => {

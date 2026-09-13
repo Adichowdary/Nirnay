@@ -147,7 +147,7 @@ export default function BeneficiariesPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-base bg-muted/40 text-muted uppercase text-[10px] font-extrabold tracking-wider">
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 uppercase text-[11px] font-extrabold tracking-wider">
                 <th className="py-3.5 px-4">Cryptographic Masked ID</th>
                 <th className="py-3.5 px-4">Facility / Jurisdiction</th>
                 <th className="py-3.5 px-4">Welfare Scheme</th>
@@ -177,8 +177,8 @@ export default function BeneficiariesPage() {
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <div className="font-bold text-primary">{project?.name || b.project_id}</div>
-                      <div className="text-[11px] text-muted">{project?.district_name}, {project?.state || "Andhra Pradesh"}</div>
+                      <div className="font-bold text-slate-900 dark:text-white text-sm">{project?.name || b.project_id}</div>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">{project?.district_name}, {project?.state || "Andhra Pradesh"}</div>
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-[10px]">
@@ -203,14 +203,14 @@ export default function BeneficiariesPage() {
                         {b.services_received.map((svc) => (
                           <span
                             key={svc}
-                            className="px-2 py-0.5 rounded-lg bg-muted/60 text-[10px] text-secondary font-medium"
+                            className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 font-semibold"
                           >
                             {svc}
                           </span>
                         ))}
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-muted font-mono text-[11px]">
+                    <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-mono text-xs font-medium">
                       {b.last_verification}
                     </td>
                   </tr>

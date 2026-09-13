@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Globe, Accessibility, Sun, Moon, ZoomIn, RotateCcw } from "lucide-react";
+import { useApp } from "@/components/shell/Providers";
 
 interface AccessibilitySettings {
   fontSize: number;
@@ -29,16 +30,12 @@ function getSavedSettings(): AccessibilitySettings {
   } catch { return DEFAULTS; }
 }
 
-function getIsDark(): boolean {
-  if (typeof window === "undefined") return false;
-  return document.documentElement.classList.contains("dark");
-}
-
 export function GovernmentUtilityBar() {
   const [lang, setLang] = useState<"en" | "hi">("en");
   const [showA11y, setShowA11y] = useState(false);
   const [settings, setSettings] = useState<AccessibilitySettings>(getSavedSettings);
-  const [isDark, setIsDark] = useState(getIsDark);
+  // Theme is owned by Providers (single authority) — no local copy.
+  const { isDarkMode: isDark, setDarkMode: setIsDark } = useApp();
 
   const applySettings = useCallback((s: AccessibilitySettings) => {
     const root = document.documentElement;
@@ -56,12 +53,7 @@ export function GovernmentUtilityBar() {
     applySettings(settings);
   }, [settings, applySettings]);
 
-  const toggleDark = () => {
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    try { localStorage.setItem("insight_theme", next ? "dark" : "light"); } catch { /* ignore */ }
-  };
+  const toggleDark = () => setIsDark(!isDark);
 
   const reset = () => setSettings(DEFAULTS);
 
@@ -72,8 +64,9 @@ export function GovernmentUtilityBar() {
         Skip to main content
       </a>
 
-      {/* Government Utility Bar */}
-      <div className="w-full bg-[#1a1a2e] text-white text-xs" style={{ fontSize: "11px" }}>
+      {/* Government Utility Bar — premium navy + tricolor accent */}
+      <div className="w-full text-white text-xs" style={{ fontSize: "11px", background: "linear-gradient(135deg, #07111e 0%, #0b1e36 55%, #143765 100%)" }}>
+        <div className="tricolor-strip" aria-hidden="true" />
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-8">
           {/* Left: Government of India */}
           <div className="flex items-center gap-2">
@@ -89,7 +82,7 @@ export function GovernmentUtilityBar() {
             {/* Language Toggle */}
             <button
               onClick={() => setLang(lang === "en" ? "hi" : "en")}
-              className="flex items-center gap-1 text-white/70 hover:text-white transition-colors cursor-pointer px-2 py-0.5 rounded hover:bg-white/10"
+              className="micro-press flex items-center gap-1 text-white/70 hover:text-white transition-colors cursor-pointer px-2 py-0.5 rounded hover:bg-white/10"
               aria-label="Toggle language"
             >
               <Globe size={12} />
@@ -101,7 +94,7 @@ export function GovernmentUtilityBar() {
             {/* Dark/Light Mode */}
             <button
               onClick={toggleDark}
-              className="flex items-center gap-1 text-white/70 hover:text-white transition-colors cursor-pointer px-2 py-0.5 rounded hover:bg-white/10"
+              className="micro-press flex items-center gap-1 text-white/70 hover:text-white transition-colors cursor-pointer px-2 py-0.5 rounded hover:bg-white/10"
               aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
             >
               {isDark ? <Sun size={12} /> : <Moon size={12} />}
@@ -113,7 +106,7 @@ export function GovernmentUtilityBar() {
             {/* Accessibility Widget Toggle */}
             <button
               onClick={() => setShowA11y(!showA11y)}
-              className="flex items-center gap-1 text-white/70 hover:text-white transition-colors cursor-pointer px-2 py-0.5 rounded hover:bg-white/10"
+              className="micro-press flex items-center gap-1 text-white/70 hover:text-white transition-colors cursor-pointer px-2 py-0.5 rounded hover:bg-white/10"
               aria-label="Accessibility options"
               aria-expanded={showA11y}
             >

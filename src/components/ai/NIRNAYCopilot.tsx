@@ -42,6 +42,16 @@ const PRESET_PROMPTS = [
   "⚡ Draft an urgent ministerial verification notice for high-risk NGO centers",
 ];
 
+let messageCounter = 0;
+function createMessageId(prefix: string): string {
+  messageCounter += 1;
+  return `${prefix}-${messageCounter}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function getFormattedTime(): string {
+  return new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+}
+
 export function NIRNAYCopilot({
   isOpen,
   onClose,
@@ -85,10 +95,10 @@ How may I assist your command today? You can ask about high-risk facilities, sur
     if (!textToSend.trim() || isGenerating) return;
 
     const userMsg: Message = {
-      id: `user-${Date.now()}`,
+      id: createMessageId("user"),
       sender: "user",
       text: textToSend,
-      timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+      timestamp: getFormattedTime(),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -112,10 +122,10 @@ How may I assist your command today? You can ask about high-risk facilities, sur
         const data = await res.json();
         if (data.response) {
           const aiMsg: Message = {
-            id: `ai-${Date.now()}`,
+            id: createMessageId("ai"),
             sender: "ai",
             text: data.response,
-            timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+            timestamp: getFormattedTime(),
             tags: ["Live Ollama (nirnay-ai)", "Local AI Engine"],
           };
           setMessages((prev) => [...prev, aiMsg]);
@@ -203,10 +213,10 @@ Please specify if you would like to run a what-if scenario, view explainable ris
       }
 
       const aiMsg: Message = {
-        id: `ai-${Date.now()}`,
+        id: createMessageId("ai"),
         sender: "ai",
         text: aiReply,
-        timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+        timestamp: getFormattedTime(),
         tags,
         suggestedAction,
       };

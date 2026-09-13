@@ -22,8 +22,8 @@ const SEVERITY_CONFIG: Record<AISignalSeverity, {
     icon: ({ size }) => <AlertTriangle size={size} style={{ color: "var(--color-warning)" }} />,
   },
   medium: {
-    bg: "var(--amber-50)", text: "var(--amber-600)", border: "var(--amber-400)",
-    icon: ({ size }) => <AlertTriangle size={size} style={{ color: "var(--amber-600)" }} />,
+    bg: "var(--color-warning-bg)", text: "var(--color-warning)", border: "var(--amber-500)",
+    icon: ({ size }) => <AlertTriangle size={size} style={{ color: "var(--color-warning)" }} />,
   },
   low: {
     bg: "var(--color-success-bg)", text: "var(--color-success)", border: "var(--green-500)",
@@ -78,38 +78,38 @@ export default function AISignalsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Brain size={22} className="text-purple-600" />
+            <Brain size={22} className="text-purple-500 dark:text-purple-400" />
             <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
               AI Intelligence Signals &amp; Anomaly Engine
             </h1>
           </div>
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Automated Anomaly Detection • CCTV Stream Blackout, Biometric Mismatch &amp; Geofence Validation
           </p>
         </div>
 
-        <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-purple-500/10 text-purple-600 border border-purple-500/20 flex items-center gap-1.5">
+        <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 dark:border-purple-500/30 flex items-center gap-1.5 flex-shrink-0">
           <Sparkles size={14} /> AI Model Accuracy 94.8%
         </span>
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-2xl font-black text-purple-600 font-mono">14.2%</div>
-          <div className="text-xs text-slate-500 font-medium mt-1">National Risk Index</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 shadow-sm">
+          <div className="text-2xl font-black text-purple-600 dark:text-purple-400 font-mono">14.2%</div>
+          <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-1">National Risk Index</div>
         </div>
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-2xl font-black text-rose-600 font-mono">{DEMO_AI_SIGNALS.filter(s=>s.severity==='critical').length}</div>
-          <div className="text-xs text-slate-500 font-medium mt-1">Critical Anomalies</div>
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 shadow-sm">
+          <div className="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">{DEMO_AI_SIGNALS.filter(s=>s.severity==='critical').length}</div>
+          <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-1">Critical Anomalies</div>
         </div>
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-2xl font-black text-amber-600 font-mono">98.4%</div>
-          <div className="text-xs text-slate-500 font-medium mt-1">Face Recognition Conf.</div>
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 shadow-sm">
+          <div className="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">98.4%</div>
+          <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-1">Face Recognition Conf.</div>
         </div>
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-2xl font-black text-emerald-600 font-mono">{resolvedSignalIds.length}</div>
-          <div className="text-xs text-slate-500 font-medium mt-1">Resolved Today</div>
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 shadow-sm">
+          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">{resolvedSignalIds.length}</div>
+          <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-1">Resolved Today</div>
         </div>
       </div>
 
@@ -129,7 +129,7 @@ export default function AISignalsPage() {
 
       {/* Severity Filter Tabs */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-1.5 overflow-x-auto">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
           {["all", "critical", "high", "medium", "low"].map((s) => (
             <button
               type="button"
@@ -138,14 +138,14 @@ export default function AISignalsPage() {
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 filterSeverity === s
                   ? "bg-purple-600 text-white shadow-md"
-                  : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800"
+                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
               }`}
             >
               {s === "all" ? "All Signals" : s.toUpperCase()}
             </button>
           ))}
         </div>
-        <span className="text-xs font-mono text-slate-500">
+        <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
           Showing {filtered.length} Anomaly Signals
         </span>
       </div>
@@ -161,7 +161,7 @@ export default function AISignalsPage() {
           return (
             <div
               key={signal.id}
-              className={`rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 transition-all ${
+              className={`rounded-2xl overflow-hidden bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 shadow-sm transition-all ${
                 isResolved ? "opacity-60" : ""
               }`}
               style={{
@@ -200,10 +200,10 @@ export default function AISignalsPage() {
                   <h2 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">
                     {signal.title}
                   </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold mt-0.5">
                     {signal.project_name} • {signal.district_name}
                   </p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+                  <p className="text-xs text-slate-700 dark:text-slate-200 mt-1.5 leading-relaxed font-medium">
                     {signal.summary}
                   </p>
                 </div>
@@ -228,10 +228,10 @@ export default function AISignalsPage() {
 
               {/* Expanded Card Details */}
               {isExpanded && (
-                <div className="px-4 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 space-y-4">
+                <div className="px-4 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         What Happened
                       </p>
                       <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
@@ -240,7 +240,7 @@ export default function AISignalsPage() {
                     </div>
 
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         Why Detected
                       </p>
                       <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
@@ -249,7 +249,7 @@ export default function AISignalsPage() {
                     </div>
 
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         Data Sensors Evaluated
                       </p>
                       <ul className="space-y-1">
@@ -263,7 +263,7 @@ export default function AISignalsPage() {
                     </div>
 
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         Recommended Action
                       </p>
                       <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium mb-1">

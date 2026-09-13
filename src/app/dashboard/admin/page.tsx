@@ -204,14 +204,14 @@ export default function CentralAdminPage() {
             <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-400 text-[11px] font-black uppercase tracking-wider">
               Level 1: Nationwide Oversight
             </span>
-            <span className="text-xs text-muted font-medium flex items-center gap-1">
+            <span className="text-xs text-slate-300 font-semibold flex items-center gap-1">
               <Landmark size={13} className="text-amber-400" /> Ministry of Social Justice &amp; Empowerment
             </span>
           </div>
-          <h1 className="text-2xl font-black text-primary tracking-tight">
+          <h1 className="text-2xl font-black text-white tracking-tight">
             Central Command &amp; State Administration Directorate
           </h1>
-          <p className="text-xs text-muted mt-1 max-w-2xl">
+          <p className="text-xs text-slate-300 mt-1 max-w-2xl font-medium">
             National governance hub for State Admin lifecycle management, nationwide SLA escalations, 2-level administrative monitoring, and real-time state performance matrix.
           </p>
         </div>

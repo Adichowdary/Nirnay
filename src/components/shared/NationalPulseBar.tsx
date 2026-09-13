@@ -2,24 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Activity,
   Video,
   Fingerprint,
   ShieldAlert,
   IndianRupee,
   Sparkles,
-  Zap,
-  TrendingUp,
-  MapPin,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export function NationalPulseBar() {
   const [cctvOnline, setCctvOnline] = useState(148);
   const [biometricToday, setBiometricToday] = useState(18420);
-  const [activeInspections, setActiveInspections] = useState(12);
+  const [activeInspections] = useState(12);
   const [leakagePreventedLakhs, setLeakagePreventedLakhs] = useState(124.6);
-  const [pulseKey, setPulseKey] = useState(0);
 
   useEffect(() => {
     // Subtle real-time ticking simulation
@@ -35,15 +29,13 @@ export function NationalPulseBar() {
       if (Math.random() > 0.7) {
         setLeakagePreventedLakhs((prev) => Number((prev + 0.1).toFixed(1)));
       }
-
-      setPulseKey((k) => k + 1);
     }, 6000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="w-full rounded-2xl bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-slate-800/80 p-3 text-white shadow-lg overflow-hidden relative">
+    <div className="w-full rounded-2xl bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-slate-800/80 p-3 text-white shadow-xl overflow-hidden relative">
       {/* Background ambient pulse line */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-rose-500/5 via-transparent to-transparent" />
 
@@ -67,7 +59,7 @@ export function NationalPulseBar() {
               <Video size={13} />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 block font-medium">Active CCTV Feeds</span>
+              <span className="text-[11px] text-slate-300 block font-semibold">Active CCTV Feeds</span>
               <span className="font-mono font-extrabold text-emerald-400 text-xs sm:text-sm">
                 {cctvOnline} / 152 <span className="text-[10px] text-emerald-500 font-bold">(97.4%)</span>
               </span>
@@ -80,7 +72,7 @@ export function NationalPulseBar() {
               <Fingerprint size={13} />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 block font-medium">Biometric Check-ins Today</span>
+              <span className="text-[11px] text-slate-300 block font-semibold">Biometric Check-ins Today</span>
               <span className="font-mono font-extrabold text-indigo-300 text-xs sm:text-sm">
                 {biometricToday.toLocaleString("en-IN")}
                 <span className="text-[10px] text-indigo-400 font-bold ml-1 animate-pulse">▲ Live</span>
@@ -94,7 +86,7 @@ export function NationalPulseBar() {
               <ShieldAlert size={13} />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 block font-medium">Surprise Inspections</span>
+              <span className="text-[11px] text-slate-300 block font-semibold">Surprise Inspections</span>
               <span className="font-mono font-extrabold text-amber-400 text-xs sm:text-sm">
                 {activeInspections} In-Flight
               </span>
@@ -107,7 +99,7 @@ export function NationalPulseBar() {
               <IndianRupee size={13} />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 block font-medium">DBT Leakage Prevented</span>
+              <span className="text-[11px] text-slate-300 block font-semibold">DBT Leakage Prevented</span>
               <span className="font-mono font-extrabold text-rose-300 text-xs sm:text-sm">
                 ₹{leakagePreventedLakhs} L
               </span>
@@ -116,7 +108,7 @@ export function NationalPulseBar() {
         </div>
 
         {/* AI Health indicator */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-mono text-slate-400">
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300 font-medium">
           <Sparkles size={11} className="text-purple-400" />
           <span>YOLOv10 + DeepFace 60Hz</span>
         </div>

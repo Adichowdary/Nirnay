@@ -127,7 +127,16 @@ export default function AuditSquadWorkspacePage() {
   };
 
   useEffect(() => {
-    acquireLocation();
+    let active = true;
+    const timer = setTimeout(() => {
+      if (active) {
+        acquireLocation();
+      }
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   // Generic File Upload Handler with Canvas Watermarking

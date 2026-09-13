@@ -4,16 +4,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRealTimeStream, LiveStreamEvent } from "@/hooks/useRealTimeStream";
 import {
-  Activity,
   Radio,
   ChevronUp,
   ChevronDown,
-  AlertCircle,
-  AlertTriangle,
-  Info,
-  ShieldAlert,
-  Ghost,
-  Video,
   X,
   Sparkles,
   ExternalLink,
@@ -69,50 +62,95 @@ export function LiveActivityTicker() {
     }
   };
 
+  const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
+
   return (
-    <div className="fixed bottom-4 right-4 z-40 max-w-sm sm:max-w-md w-full select-none">
-      <div className="rounded-2xl bg-slate-950/95 backdrop-blur-md border border-slate-800 text-slate-100 shadow-2xl overflow-hidden transition-all duration-300">
-        {/* Header Bar */}
-        <div className="flex items-center justify-between px-3.5 py-2.5 bg-slate-900/80 border-b border-slate-800/80">
-          <div className="flex items-center gap-2">
+    <>
+      {/* Mobile Minimized Pill (only visible on mobile when not open) */}
+      {!isMobileOpen && (
+        <div className="sm:hidden fixed bottom-20 right-3 z-30">
+          <button
+            type="button"
+            onClick={() => setIsMobileOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/95 text-white border border-slate-700 shadow-2xl backdrop-blur-md text-xs font-bold transition-all active:scale-95 cursor-pointer"
+            aria-label="Open live anomaly telemetry stream"
+          >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
             </span>
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-200 flex items-center gap-1">
-              <Radio size={12} className="text-rose-400" />
-              DoSJE Live Stream
-            </span>
-            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-              {activeCount} Pings
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => triggerManualEvent()}
-              className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition text-[10px] flex items-center gap-0.5"
-              title="Simulate immediate live ping"
-            >
-              <Sparkles size={11} className="text-purple-400" />
-              <span className="hidden sm:inline font-mono">Ping</span>
-            </button>
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition"
-              title={isExpanded ? "Collapse ticker" : "Expand all events"}
-            >
-              {isExpanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-            </button>
-            <button
-              onClick={() => setIsDismissed(true)}
-              className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition"
-              title="Minimize to floating button"
-            >
-              <X size={14} />
-            </button>
-          </div>
+            <Radio size={12} className="text-rose-400" />
+            <span className="text-[11px] font-mono">{activeCount} Pings</span>
+          </button>
         </div>
+      )}
+
+      {/* Mobile Backdrop when open on mobile */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs sm:hidden z-35"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Main Stream Card — docked on desktop, overlay modal on mobile */}
+      <div
+        className={cn(
+          "z-40 select-none transition-all duration-300",
+          "sm:fixed sm:bottom-4 sm:right-4 sm:max-w-md sm:w-full sm:block",
+          isMobileOpen
+            ? "fixed bottom-20 inset-x-3 max-w-sm mx-auto block"
+            : "hidden sm:block"
+        )}
+      >
+        <div className="rounded-2xl bg-slate-950/95 backdrop-blur-md border border-slate-800 text-slate-100 shadow-2xl overflow-hidden">
+          {/* Header Bar */}
+          <div className="flex items-center justify-between px-3.5 py-2.5 bg-slate-900/80 border-b border-slate-800/80">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+              </span>
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-200 flex items-center gap-1">
+                <Radio size={12} className="text-rose-400" />
+                DoSJE Live Stream
+              </span>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                {activeCount} Pings
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => triggerManualEvent()}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition text-[10px] flex items-center gap-0.5 cursor-pointer"
+                title="Simulate immediate live ping"
+              >
+                <Sparkles size={11} className="text-purple-400" />
+                <span className="hidden sm:inline font-mono">Ping</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                title={isExpanded ? "Collapse ticker" : "Expand all events"}
+              >
+                {isExpanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDismissed(true);
+                  setIsMobileOpen(false);
+                }}
+                className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
+                title="Minimize to floating button"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
 
         {/* Latest Active Event (Always Visible) */}
         {latestEvent && (
@@ -127,22 +165,22 @@ export function LiveActivityTicker() {
                 >
                   {latestEvent.severity}
                 </span>
-                <span className="text-[10px] font-bold text-slate-400 font-mono">
+                <span className="text-[10px] font-bold text-slate-300 font-mono">
                   {latestEvent.location}
                 </span>
               </div>
-              <span className="text-[9px] text-slate-500 font-mono">{latestEvent.timestamp}</span>
+              <span className="text-[10px] text-slate-300 font-mono">{latestEvent.timestamp}</span>
             </div>
 
             <p className="text-xs font-bold text-white tracking-tight leading-snug">
               {latestEvent.title}
             </p>
-            <p className="text-[11px] text-slate-400 line-clamp-2 mt-0.5">
+            <p className="text-[11px] text-slate-200 line-clamp-2 mt-0.5 font-medium">
               {latestEvent.description}
             </p>
 
             <div className="flex items-center justify-between pt-2 mt-2 border-t border-slate-800/60 text-[10px]">
-              <span className="text-slate-500 truncate max-w-[200px]">
+              <span className="text-slate-300 truncate max-w-[200px] font-semibold">
                 {latestEvent.facilityName}
               </span>
               <Link
@@ -175,7 +213,7 @@ export function LiveActivityTicker() {
                       {evt.title}
                     </span>
                   </div>
-                  <p className="text-[10px] text-slate-400 truncate">
+                  <p className="text-[11px] text-slate-300 truncate font-medium">
                     {evt.facilityName} • {evt.location}
                   </p>
                 </div>
@@ -191,5 +229,6 @@ export function LiveActivityTicker() {
         )}
       </div>
     </div>
+  </>
   );
 }

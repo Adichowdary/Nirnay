@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Mic,
   MicOff,
@@ -31,6 +31,8 @@ interface VoiceToReportModalProps {
   onApplyData: (data: ExtractedInspectionData) => void;
 }
 
+const DEFAULT_WAVEFORM = [15, 20, 25, 18, 22, 16, 20, 24, 18, 15, 20, 16];
+
 export function VoiceToReportModal({
   isOpen,
   onClose,
@@ -42,32 +44,25 @@ export function VoiceToReportModal({
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [waveformData, setWaveformData] = useState<number[]>([15, 25, 45, 20, 60, 30, 80, 40, 20, 50, 75, 30]);
-  const [extractedData, setExtractedData] = useState<ExtractedInspectionData | null>(null);
+
+  // Derived state via useMemo (avoids cascading render)
+  const extractedData = useMemo(() => {
+    if (transcript.trim().length > 5) {
+      return extractInspectionFromTranscript(transcript, selectedLang.code);
+    }
+    return null;
+  }, [transcript, selectedLang.code]);
 
   // Simulated audio waveform animator when recording is active
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isRecording) {
-      interval = setInterval(() => {
-        setWaveformData((prev) =>
-          prev.map(() => Math.floor(Math.random() * 85) + 15)
-        );
-      }, 120);
-    } else {
-      setWaveformData([15, 20, 25, 18, 22, 16, 20, 24, 18, 15, 20, 16]);
-    }
+    if (!isRecording) return;
+    const interval = setInterval(() => {
+      setWaveformData((prev) =>
+        prev.map(() => Math.floor(Math.random() * 85) + 15)
+      );
+    }, 120);
     return () => clearInterval(interval);
   }, [isRecording]);
-
-  // Re-extract data when transcript changes
-  useEffect(() => {
-    if (transcript.trim().length > 5) {
-      const parsed = extractInspectionFromTranscript(transcript, selectedLang.code);
-      setExtractedData(parsed);
-    } else {
-      setExtractedData(null);
-    }
-  }, [transcript, selectedLang]);
 
   if (!isOpen) return null;
 
@@ -84,6 +79,7 @@ export function VoiceToReportModal({
       } else {
         setTranscript(phrase);
         setIsRecording(false);
+        setWaveformData(DEFAULT_WAVEFORM);
         clearInterval(typingInterval);
       }
     }, 60);
@@ -92,6 +88,7 @@ export function VoiceToReportModal({
   const handleToggleMic = () => {
     if (isRecording) {
       setIsRecording(false);
+      setWaveformData(DEFAULT_WAVEFORM);
     } else {
       handleStartSimulatedDictation();
     }

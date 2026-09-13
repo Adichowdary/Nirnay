@@ -12,10 +12,13 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - AI_ENGINE_URL=http://nirnay-ai-engine:8000
+      - GOV_CORE_URL=http://nirnay-gov-core:8080
       - NEXT_PUBLIC_AI_ENGINE_URL=http://nirnay-ai-engine:8000
       - NEXT_PUBLIC_GOV_CORE_URL=http://nirnay-gov-core:8080
       - NEXT_PUBLIC_EDGE_GATEWAY_URL=http://nirnay-edge-gateway:9000
       - NEXT_PUBLIC_MEDIAMTX_URL=http://nirnay-mediamtx:8889
+      - NEXT_PUBLIC_DEMO_MODE=true
     depends_on:
       - nirnay-ai-engine
       - nirnay-gov-core

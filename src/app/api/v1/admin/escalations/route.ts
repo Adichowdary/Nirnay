@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEscalatedIssues, returnIssueToState, resolveIssue } from "@/lib/issues/issue-store";
+import { verifyAdminRequest, APEX_ADMIN_ROLES, DEFAULT_ADMIN_ROLES } from "@/lib/auth/admin-guard";
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(request, DEFAULT_ADMIN_ROLES);
+    if (!auth.authorized && auth.errorResponse) return auth.errorResponse;
+
     const url = new URL(request.url);
     const state = url.searchParams.get("state") || undefined;
 
@@ -22,6 +26,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(request, APEX_ADMIN_ROLES);
+    if (!auth.authorized && auth.errorResponse) return auth.errorResponse;
+
     const body = await request.json();
     const { action, issueId, correctiveInstructions, adminName } = body;
 

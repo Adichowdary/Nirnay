@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Shield,
@@ -23,6 +23,8 @@ import {
   Moon,
 } from "lucide-react";
 import { createClient } from "@/lib/db/browser";
+
+const emptySubscribe = () => () => {};
 import { ROLE_META } from "@/lib/auth/roles";
 import type { RoleId } from "@/lib/auth/roles";
 import { useApp } from "@/components/shell/Providers";
@@ -63,7 +65,7 @@ const PORTAL_ROLES: PortalRoleOption[] = [
     iconBg: "rgba(225, 29, 72, 0.08)",
     emblemText: "केंद्रीय कमान",
     emblemSub: "COMMAND",
-    imagePath: "/images/2 image for dosje official .jpeg",
+    imagePath: "/images/1 image-central admin.jpeg",
     demoEmail: "official@dosje.gov.in",
     demoPass: "Demo@Insight2025",
     officerName: "Rajesh Kumar Sharma",
@@ -81,7 +83,7 @@ const PORTAL_ROLES: PortalRoleOption[] = [
     iconBg: "rgba(37, 99, 235, 0.08)",
     emblemText: "राज्य प्रशासन",
     emblemSub: "STATE ADMIN",
-    imagePath: "/images/5 imgage .jpeg",
+    imagePath: "/images/2 image state administrative.jpeg",
     demoEmail: "stateadmin.ap@dosje.gov.in",
     demoPass: "Demo@Insight2025",
     officerName: "Dr. K. Venkateswarlu",
@@ -99,7 +101,7 @@ const PORTAL_ROLES: PortalRoleOption[] = [
     iconBg: "rgba(5, 150, 105, 0.08)",
     emblemText: "ऑडिट दस्ता",
     emblemSub: "AUDIT",
-    imagePath: "/images/3 image.jpeg",
+    imagePath: "/images/3 Audit squad.jpeg",
     demoEmail: "inspector@dosje.gov.in",
     demoPass: "Demo@Insight2025",
     officerName: "Priya Mehta",
@@ -117,7 +119,7 @@ const PORTAL_ROLES: PortalRoleOption[] = [
     iconBg: "rgba(217, 119, 6, 0.08)",
     emblemText: "एजेंसी पोर्टल",
     emblemSub: "AGENCY",
-    imagePath: "/images/4 image .jpeg",
+    imagePath: "/images/4 Agency portal.jpeg",
     demoEmail: "contact@samplengo.org",
     demoPass: "Demo@Insight2025",
     officerName: "Anjali Verma",
@@ -135,7 +137,7 @@ const PORTAL_ROLES: PortalRoleOption[] = [
     iconBg: "rgba(124, 58, 237, 0.08)",
     emblemText: "सिस्टम एडमिन",
     emblemSub: "ADMIN",
-    imagePath: "/images/6 image .jpeg",
+    imagePath: "/images/5 system admin.jpeg",
     demoEmail: "admin@insight.gov.in",
     demoPass: "Demo@Insight2025",
     officerName: "Admin User",
@@ -162,6 +164,16 @@ export default function LoginPage() {
   const [frsRoleId, setFrsRoleId] = useState("OFFICIAL");
   const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string>("/dashboard");
   const [lang, setLang] = useState<"en" | "hi">("en");
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+  useEffect(() => {
+    // Reset any active role upon arriving at login page to allow clean sign-in
+    setUserRole(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("insight_active_role");
+      document.cookie = "insight_demo_role=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+  }, [setUserRole]);
 
   const handleSelectRole = (role: PortalRoleOption) => {
     setSelectedRole(role);
@@ -187,14 +199,16 @@ export default function LoginPage() {
     // Set active user role immediately in state, cookie, and storage
     setUserRole(matchedRole.id);
 
-    // Fast background auth attempt with 800ms race timeout
+    // Fast background auth attempt with 100ms race timeout
     try {
-      const authPromise = supabase.auth.signInWithPassword({
+      const authPromise = supabase?.auth.signInWithPassword({
         email,
         password,
       });
-      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 800));
-      await Promise.race([authPromise, timeoutPromise]);
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 100));
+      if (authPromise) {
+        await Promise.race([authPromise, timeoutPromise]);
+      }
     } catch {
       // Prototype demo fallback
     }
@@ -202,8 +216,8 @@ export default function LoginPage() {
     setLoading(false);
 
     let target = "/dashboard";
-    if (matchedRole.id === "INSPECTION_OFFICER") target = "/dashboard/inspector";
-    else if (matchedRole.id === "NGO_INSTITUTE" || matchedRole.id === "PROJECT_ADMIN") target = "/dashboard/organization";
+    if (matchedRole.id === "INSPECTION_OFFICER" || matchedRole.id === "AUDIT_SQUAD") target = "/dashboard/inspector";
+    else if (matchedRole.id === "NGO_INSTITUTE" || matchedRole.id === "PROJECT_ADMIN" || matchedRole.id === "AGENCY_PORTAL") target = "/dashboard/agency";
     else if (matchedRole.id === "STATE_ADMIN") target = "/dashboard/regional";
     else if (matchedRole.id === "ADMIN") target = "/dashboard/admin";
 
@@ -269,13 +283,17 @@ export default function LoginPage() {
                 <span>{lang === "en" ? "हिन्दी" : "English"}</span>
               </button>
               <span className="text-slate-700">|</span>
-              <button
-                onClick={() => setDarkMode(!isDarkMode)}
-                className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors cursor-pointer"
-              >
-                {isDarkMode ? <Sun size={13} /> : <Moon size={13} />}
-                <span>{isDarkMode ? "Light" : "Dark"}</span>
-              </button>
+              {mounted ? (
+                <button
+                  onClick={() => setDarkMode(!isDarkMode)}
+                  className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  {isDarkMode ? <Sun size={13} /> : <Moon size={13} />}
+                  <span>{isDarkMode ? "Light" : "Dark"}</span>
+                </button>
+              ) : (
+                <div className="w-12 h-4" />
+              )}
             </div>
           </div>
         </div>
@@ -298,7 +316,7 @@ export default function LoginPage() {
                 /* Main Brand Logo - Enlarged & Glowing */
                 <div className="relative w-14 h-14 flex items-center justify-center filter drop-shadow-[0_4px_12px_rgba(245,158,11,0.35)]">
                   <Image
-                    src="/images/main_logo.png"
+                    src="/images/1 image-central admin.jpeg"
                     alt="NIRNAY Main Logo Emblem"
                     width={56}
                     height={56}
@@ -314,7 +332,7 @@ export default function LoginPage() {
                     v2.5 NATIONAL ENGINE
                   </span>
                 </h1>
-                <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1">
                   National Decision Support &amp; Monitoring Engine
                 </p>
               </div>
@@ -334,7 +352,7 @@ export default function LoginPage() {
                     <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-blue-600 via-amber-500 to-rose-600 opacity-65 blur-2xl transition duration-500 group-hover:opacity-90" />
                     <div className="relative w-36 h-36 flex items-center justify-center filter drop-shadow-[0_12px_32px_rgba(245,158,11,0.5)]">
                       <Image
-                        src="/images/main_logo.png"
+                        src="/images/1 image-central admin.jpeg"
                         alt="NIRNAY Official Main Emblem"
                         width={144}
                         height={144}
@@ -373,6 +391,7 @@ export default function LoginPage() {
                         src={role.imagePath}
                         alt={role.schemeTitle}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
@@ -528,8 +547,8 @@ export default function LoginPage() {
                         const currentRole = selectedRole || PORTAL_ROLES[0];
                         setUserRole(currentRole.id);
                         let target = "/dashboard";
-                        if (currentRole.id === "INSPECTION_OFFICER") target = "/dashboard/inspector";
-                        else if (currentRole.id === "NGO_INSTITUTE" || currentRole.id === "PROJECT_ADMIN") target = "/dashboard/organization";
+                        if (currentRole.id === "INSPECTION_OFFICER" || currentRole.id === "AUDIT_SQUAD") target = "/dashboard/inspector";
+                        else if (currentRole.id === "NGO_INSTITUTE" || currentRole.id === "PROJECT_ADMIN" || currentRole.id === "AGENCY_PORTAL") target = "/dashboard/agency";
                         else if (currentRole.id === "STATE_ADMIN") target = "/dashboard/regional";
                         else if (currentRole.id === "ADMIN") target = "/dashboard/admin";
                         router.push(target);

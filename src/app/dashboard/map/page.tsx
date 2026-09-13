@@ -21,8 +21,10 @@ import {
   WifiOff,
   PanelRightClose,
   PanelRightOpen,
+  X,
 } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 const MapPanel = dynamic(
   () => import("@/components/map/MapPanel").then((m) => ({ default: m.MapPanel })),
@@ -177,40 +179,46 @@ export default function MapIntelligencePage() {
     return { critical, high, cctvOffline };
   }, [projects]);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+      setIsSidebarOpen(true);
+    }
+  }, []);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-var(--header-h))] overflow-hidden" style={{ background: "var(--surface-bg)" }}>
+    <div className="flex flex-col h-full overflow-hidden" style={{ background: "var(--surface-bg)" }}>
       {/* Top Bar */}
       <header
-        className="flex items-center justify-between px-4 py-2.5 flex-shrink-0 z-20"
+        className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 flex-shrink-0 z-20"
         style={{ background: "var(--surface-card)", borderBottom: "1px solid var(--border-light)" }}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <Layers size={16} style={{ color: "var(--blue-600)" }} />
-            <h1 className="font-bold" style={{ fontSize: "var(--text-sm)", color: "var(--text-primary)" }}>
-              Map Intelligence & GIS Command
+            <h1 className="font-bold text-xs sm:text-sm" style={{ color: "var(--text-primary)" }}>
+              <span className="sm:inline hidden">Map Intelligence &amp; </span>GIS Command
             </h1>
           </div>
           <span
-            className="px-2 py-0.5 rounded-full font-semibold"
-            style={{ fontSize: "10px", background: "var(--blue-50)", color: "var(--blue-600)", border: "1px solid var(--blue-200)" }}
+            className="px-2 py-0.5 rounded-full font-semibold text-[10px]"
+            style={{ background: "var(--blue-50)", color: "var(--blue-600)", border: "1px solid var(--blue-200)" }}
           >
-            {filteredProjects.length} of {projects.length} SITES
+            {filteredProjects.length} SITES
           </span>
           {dataSource === "api" && (
             <span
-              className="px-2 py-0.5 rounded-full font-semibold"
-              style={{ fontSize: "10px", background: "var(--green-50)", color: "var(--green-600)", border: "1px solid var(--green-200)" }}
+              className="px-2 py-0.5 rounded-full font-semibold text-[10px]"
+              style={{ background: "var(--green-50)", color: "var(--green-600)", border: "1px solid var(--green-200)" }}
             >
               LIVE
             </span>
           )}
           {stats.critical > 0 && (
             <span
-              className="px-2 py-0.5 rounded-full font-semibold"
-              style={{ fontSize: "10px", background: "var(--red-50)", color: "var(--red-600)", border: "1px solid var(--red-200)" }}
+              className="px-1.5 py-0.5 rounded-full font-bold text-[9px] sm:text-[10px]"
+              style={{ background: "var(--red-50)", color: "var(--red-600)", border: "1px solid var(--red-200)" }}
             >
               {stats.critical} CRITICAL
             </span>
@@ -218,7 +226,7 @@ export default function MapIntelligencePage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Quick Stats */}
+          {/* Quick Stats (Desktop) */}
           <div className="hidden lg:flex items-center gap-3 mr-3">
             <div className="flex items-center gap-1" style={{ fontSize: "10px", color: "var(--text-muted)" }}>
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--green-600)" }} />
@@ -234,11 +242,35 @@ export default function MapIntelligencePage() {
             </div>
           </div>
 
-          {/* Drawer Toggle */}
+          {/* Mobile Segmented Switcher */}
+          <div className="flex items-center rounded-xl p-0.5 lg:hidden bg-secondary border border-base">
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(false)}
+              className={cn(
+                "px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                !isSidebarOpen ? "bg-blue-600 text-white shadow-sm" : "text-secondary hover:text-primary"
+              )}
+            >
+              Map
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              className={cn(
+                "px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                isSidebarOpen ? "bg-blue-600 text-white shadow-sm" : "text-secondary hover:text-primary"
+              )}
+            >
+              Sites ({filteredProjects.length})
+            </button>
+          </div>
+
+          {/* Desktop Drawer Toggle */}
           <button
             type="button"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
             style={{
               background: "var(--surface-secondary)",
               border: "1px solid var(--border-light)",
@@ -247,7 +279,7 @@ export default function MapIntelligencePage() {
             title={isSidebarOpen ? "Collapse Facility Drawer (Expand Map)" : "Show Facility Drawer"}
           >
             {isSidebarOpen ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
-            <span className="hidden sm:inline">{isSidebarOpen ? "Hide Facilities" : "Show Facilities"}</span>
+            <span>{isSidebarOpen ? "Hide Facilities" : "Show Facilities"}</span>
           </button>
         </div>
       </header>
@@ -260,7 +292,9 @@ export default function MapIntelligencePage() {
             <MapPanel
             onProjectClick={(id) => {
               setSelectedProjectId(id);
-              setIsSidebarOpen(true);
+              if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+                setIsSidebarOpen(true);
+              }
             }}
             projects={projects}
             filteredProjectIds={filteredProjects.map((p) => p.id)}
@@ -274,12 +308,22 @@ export default function MapIntelligencePage() {
           </ErrorBoundary>
         </div>
 
-        {/* Right Drawer */}
+        {/* Mobile Backdrop when drawer is open on mobile */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        {/* Right Drawer (Desktop side panel, Mobile slide-over sheet) */}
         <div
-          className="border-l flex flex-col h-full z-10 shadow-lg flex-shrink-0 transition-all duration-300 overflow-hidden"
+          className={cn(
+            "flex flex-col h-full z-40 shadow-2xl transition-all duration-300 overflow-hidden",
+            "fixed inset-y-0 right-0 w-[85vw] max-w-[360px] lg:static lg:w-[340px] lg:border-l",
+            isSidebarOpen ? "translate-x-0 opacity-100" : "translate-x-full lg:translate-x-0 opacity-0 lg:w-0"
+          )}
           style={{
-            width: isSidebarOpen ? 340 : 0,
-            opacity: isSidebarOpen ? 1 : 0,
             background: "var(--surface-card)",
             borderColor: isSidebarOpen ? "var(--border-light)" : "transparent",
             pointerEvents: isSidebarOpen ? "auto" : "none",
@@ -303,13 +347,17 @@ export default function MapIntelligencePage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSelectedProjectId(null)}
-                  className="p-1.5 rounded-lg cursor-pointer transition-colors"
+                  onClick={() => {
+                    setSelectedProjectId(null);
+                    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                      setIsSidebarOpen(false);
+                    }
+                  }}
+                  className="p-1.5 rounded-lg cursor-pointer transition-colors hover:bg-secondary"
                   style={{ color: "var(--text-muted)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-secondary)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  aria-label="Close facility details"
                 >
-                  <span style={{ fontSize: "16px" }}>✕</span>
+                  <X size={16} />
                 </button>
               </div>
 
@@ -459,6 +507,14 @@ export default function MapIntelligencePage() {
                 <span className="font-semibold" style={{ fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.05em" }}>
                   FACILITIES ({filteredProjects.length})
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="lg:hidden p-1 rounded-lg text-slate-400 hover:text-white hover:bg-secondary cursor-pointer"
+                  aria-label="Close facilities drawer"
+                >
+                  <X size={15} />
+                </button>
               </div>
               <div className="overflow-y-auto flex-1 p-2 space-y-1">
                 {filteredProjects.length === 0 && (
@@ -525,6 +581,70 @@ export default function MapIntelligencePage() {
           )}
         </div>
       </div>
+
+      {/* Mobile Floating Facility Quick Card (when a pin is tapped on mobile and drawer is not open) */}
+      {selectedProject && !isSidebarOpen && (
+        <div className="lg:hidden fixed bottom-20 inset-x-3 z-45 animate-in slide-in-from-bottom duration-200">
+          <div
+            className="rounded-2xl p-3.5 shadow-2xl border flex flex-col gap-2 backdrop-blur-md"
+            style={{
+              background: "var(--surface-card)",
+              borderColor: "var(--border-light)",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
+            }}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                  <span
+                    className="px-2 py-0.5 rounded-md font-bold text-[10px] tabular uppercase"
+                    style={{
+                      background: `${getRiskTierColor(selectedProject.ai_risk_score)}18`,
+                      color: getRiskTierColor(selectedProject.ai_risk_score),
+                      border: `1px solid ${getRiskTierColor(selectedProject.ai_risk_score)}40`,
+                    }}
+                  >
+                    {getRiskTier(selectedProject.ai_risk_score)} RISK ({selectedProject.ai_risk_score}/100)
+                  </span>
+                  <span className="text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>
+                    {selectedProject.cctv_online}/{selectedProject.cctv_total} CCTV Online
+                  </span>
+                </div>
+                <h3 className="font-bold text-sm truncate" style={{ color: "var(--text-primary)" }}>
+                  {selectedProject.name}
+                </h3>
+                <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
+                  {selectedProject.district_name}, {selectedProject.state}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedProjectId(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-secondary cursor-pointer"
+                aria-label="Close facility card"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(true)}
+                className="flex-1 py-2 px-3 rounded-xl font-bold text-xs bg-blue-600 text-white text-center hover:bg-blue-700 transition cursor-pointer shadow-md"
+              >
+                Full Facility Dossier
+              </button>
+              <Link
+                href={`/dashboard/projects/${selectedProject.id}`}
+                className="py-2 px-3 rounded-xl font-semibold text-xs border border-base text-secondary hover:text-primary text-center transition bg-secondary"
+              >
+                Open Project
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

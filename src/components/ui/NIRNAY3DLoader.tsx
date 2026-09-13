@@ -227,23 +227,22 @@ export function NIRNAY3DLoader({ onComplete, autoStart = true }: NIRNAY3DLoaderP
 
       {/* Foreground Holographic Content */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center px-4">
-        {/* Main Circular Transparent Logo Emblem */}
-        <div className="relative mb-5 group cursor-pointer">
+        {/* Loading Animation Video Showcase */}
+        <div className="relative mb-5 group">
           {/* Pulsing Aura */}
           <div
-            className="absolute -inset-6 rounded-full opacity-80 blur-2xl transition duration-500 animate-pulse"
+            className="absolute -inset-4 rounded-3xl opacity-80 blur-2xl transition duration-500 animate-pulse"
             style={{ background: "radial-gradient(circle, rgba(217,119,6,0.5) 0%, rgba(37,99,235,0.4) 50%, rgba(225,29,72,0.3) 100%)" }}
           />
 
-          {/* Clean Transparent Medallion (No Square Background Box) */}
-          <div className="relative w-32 h-32 flex items-center justify-center filter drop-shadow-[0_10px_35px_rgba(245,158,11,0.45)] transition-transform duration-300 transform group-hover:scale-105">
-            <Image
-              src="/images/main_logo.png"
-              alt="NIRNAY Official Circular Emblem"
-              width={128}
-              height={128}
-              className="object-contain"
-              priority
+          <div className="relative w-64 sm:w-72 aspect-video rounded-2xl overflow-hidden bg-slate-950 border border-white/25 shadow-[0_12px_40px_rgba(0,0,0,0.8),0_0_25px_rgba(245,158,11,0.35)] flex items-center justify-center">
+            <video
+              src="/loading-animation.mp4"
+              autoPlay
+              muted
+              playsInline
+              preload="auto"
+              className="w-full h-full object-cover"
             />
           </div>
         </div>

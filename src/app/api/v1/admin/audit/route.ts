@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAdminRequest, DEFAULT_ADMIN_ROLES } from "@/lib/auth/admin-guard";
 
 export interface AdminAuditEntry {
   id: string;
@@ -54,6 +55,9 @@ const ADMIN_AUDIT_LOGS: AdminAuditEntry[] = [
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(request, DEFAULT_ADMIN_ROLES);
+    if (!auth.authorized && auth.errorResponse) return auth.errorResponse;
+
     const url = new URL(request.url);
     const state = url.searchParams.get("state");
 
@@ -76,6 +80,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await verifyAdminRequest(request, DEFAULT_ADMIN_ROLES);
+    if (!auth.authorized && auth.errorResponse) return auth.errorResponse;
+
     const body = await request.json();
     const { actorId, actorName, actorRole, action, resourceType, resourceId, stateId, details } = body;
 

@@ -157,10 +157,10 @@ export default function AuditPage() {
 
       {/* Audit Filters Bar */}
       <div
-        className="p-3.5 rounded-2xl border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
+        className="p-3.5 rounded-2xl border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-sm"
         style={{
-          background: "var(--surface-primary)",
-          borderColor: "var(--border-primary)",
+          background: "var(--surface-card)",
+          borderColor: "var(--border-light)",
         }}
       >
         <div className="flex flex-1 items-center gap-2 min-w-0">
@@ -172,7 +172,7 @@ export default function AuditPage() {
             className="w-full text-xs px-3 py-2 rounded-xl border outline-none transition"
             style={{
               background: "var(--surface-secondary)",
-              borderColor: "var(--border-primary)",
+              borderColor: "var(--border-light)",
               color: "var(--text-primary)",
             }}
           />
@@ -182,10 +182,10 @@ export default function AuditPage() {
           <select
             value={selectedAction}
             onChange={(e) => setSelectedAction(e.target.value)}
-            className="text-xs px-3 py-2 rounded-xl border outline-none transition cursor-pointer"
+            className="text-xs px-3 py-2 rounded-xl border outline-none transition cursor-pointer font-semibold"
             style={{
               background: "var(--surface-secondary)",
-              borderColor: "var(--border-primary)",
+              borderColor: "var(--border-light)",
               color: "var(--text-primary)",
             }}
           >
@@ -203,9 +203,9 @@ export default function AuditPage() {
                 setSearchQuery("");
                 setSelectedAction("all");
               }}
-              className="text-xs px-2.5 py-1.5 rounded-lg border font-medium transition"
+              className="text-xs px-2.5 py-1.5 rounded-lg border font-bold transition cursor-pointer"
               style={{
-                borderColor: "var(--border-primary)",
+                borderColor: "var(--border-light)",
                 color: "var(--text-secondary)",
                 background: "var(--surface-secondary)",
               }}
@@ -214,7 +214,7 @@ export default function AuditPage() {
             </button>
           )}
 
-          <span className="text-[11px] font-mono px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-muted">
+          <span className="text-[11px] font-mono font-bold px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             {filteredEvents.length} records
           </span>
         </div>
@@ -273,9 +273,9 @@ export default function AuditPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-muted flex-wrap">
-                    <span className="font-semibold text-slate-300">{event.actor_name}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{event.actor_name}</span>
                     {event.project_id && (
-                      <span className="text-cyan-500 font-mono">· Project #{event.project_id}</span>
+                      <span className="text-blue-600 dark:text-cyan-400 font-mono font-semibold">· Project #{event.project_id}</span>
                     )}
                   </div>
                   {Object.keys(event.metadata).length > 0 && (
@@ -283,7 +283,7 @@ export default function AuditPage() {
                       {Object.entries(event.metadata).map(([k, v]) => (
                         <span
                           key={k}
-                          className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-slate-900/50 border border-slate-800 text-slate-400"
+                          className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold"
                         >
                           {k}: {String(v)}
                         </span>
