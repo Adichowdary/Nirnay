@@ -17,20 +17,7 @@ export function LiveActivityTicker() {
   const { events, latestEvent, activeCount, triggerManualEvent } = useRealTimeStream(13000);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isDismissed, setIsDismissed] = useState<boolean>(false);
-
-  if (isDismissed) {
-    return (
-      <button
-        onClick={() => setIsDismissed(false)}
-        className="fixed bottom-4 right-4 z-40 p-2.5 rounded-full bg-slate-900 border border-slate-700 text-rose-400 shadow-2xl hover:scale-105 transition flex items-center gap-1.5 text-xs font-bold"
-        title="Open Live Anomaly Ticker"
-      >
-        <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-        <Radio size={14} className="animate-pulse" />
-        <span>Live Anomaly Stream</span>
-      </button>
-    );
-  }
+  const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
 
   const getSeverityBadge = (sev: LiveStreamEvent["severity"]) => {
     switch (sev) {
@@ -62,7 +49,32 @@ export function LiveActivityTicker() {
     }
   };
 
-  const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
+  // If dismissed by user, render a compact floating restore badge on both desktop and mobile
+  if (isDismissed) {
+    return (
+      <div className="fixed bottom-20 sm:bottom-4 right-3 sm:right-4 z-40">
+        <button
+          type="button"
+          onClick={() => {
+            setIsDismissed(false);
+            setIsMobileOpen(true);
+          }}
+          className="p-2.5 sm:px-3 sm:py-2 rounded-full bg-slate-950/95 border border-slate-700 text-rose-400 shadow-2xl hover:scale-105 active:scale-95 transition flex items-center gap-2 text-xs font-bold backdrop-blur-md cursor-pointer group"
+          title="Restore DoSJE Live Stream"
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+          </span>
+          <Radio size={14} className="group-hover:scale-110 transition-transform" />
+          <span className="hidden sm:inline text-slate-200">DoSJE Live Stream</span>
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+            {activeCount}
+          </span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
