@@ -132,7 +132,7 @@ export function AppShell({ children, title, subtitle }: AppShellProps) {
             "flex-1 min-w-0",
             pathname === "/dashboard/map"
               ? "overflow-hidden"
-              : "overflow-y-auto overflow-x-hidden pb-20 md:pb-0"
+              : "overflow-y-auto overflow-x-auto pb-20 md:pb-0"
           )}
           id="main-content"
           tabIndex={-1}

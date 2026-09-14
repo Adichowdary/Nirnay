@@ -7,9 +7,11 @@ import {
   RefreshCw, Clock, MapPin, AlertTriangle, CheckCircle2,
   Loader2, Monitor, Volume2, VolumeX, Phone, ShieldCheck,
   Eye, Zap, Video, Sparkles, ZoomIn, ZoomOut, Compass, Flame,
+  ChevronLeft, ChevronRight, SlidersHorizontal,
 } from "lucide-react";
 
 import { CCTVOccupancyHeatmap } from "@/components/cctv/CCTVOccupancyHeatmap";
+import { cn } from "@/lib/utils";
 
 interface CctvCamera {
   id: string;
@@ -122,9 +124,17 @@ export default function MonitorPage() {
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [showAiBoxes, setShowAiBoxes] = useState<boolean>(true);
   const [currentTime, setCurrentTime] = useState<string>("");
-  const [viewMode, setViewMode] = useState<"GRID" | "HEATMAP">("GRID");
+  const [viewMode, setViewMode] = useState<"GRID" | "CAROUSEL" | "HEATMAP">("GRID");
   const [activeHeatmapCamId, setActiveHeatmapCamId] = useState<string>("cam-001");
   const [heartbeatSeconds, setHeartbeatSeconds] = useState<number>(1);
+  const scrollContainerRef = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const scrollRow = (facility: string, direction: "left" | "right") => {
+    const el = scrollContainerRef.current[facility];
+    if (el) {
+      el.scrollBy({ left: direction === "left" ? -420 : 420, behavior: "smooth" });
+    }
+  };
 
   // Real-time person count & heartbeat simulator
   useEffect(() => {
@@ -218,6 +228,17 @@ export default function MonitorPage() {
               Matrix Grid
             </button>
             <button
+              onClick={() => setViewMode("CAROUSEL")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                viewMode === "CAROUSEL"
+                  ? "bg-blue-600 text-white shadow"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <SlidersHorizontal size={13} />
+              Horizontal Flow
+            </button>
+            <button
               onClick={() => setViewMode("HEATMAP")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                 viewMode === "HEATMAP"
@@ -280,21 +301,45 @@ export default function MonitorPage() {
         </div>
       )}
 
-      {/* Grid of Facilities and Cameras */}
-      {viewMode === "GRID" && (
+      {/* Grid or Horizontal Carousel of Facilities and Cameras */}
+      {(viewMode === "GRID" || viewMode === "CAROUSEL") && (
       <div className="space-y-6">
         {facilities.map((facility) => {
           const facilityCameras = cameras.filter((c) => c.facility_name === facility);
           return (
             <div key={facility} className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-extrabold text-primary flex items-center gap-2">
-                  <MapPin size={16} className="text-blue-600" />
-                  {facility}
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                    {facilityCameras.filter((c) => c.status === "ONLINE").length}/{facilityCameras.length} Online
-                  </span>
-                </h2>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-extrabold text-primary flex items-center gap-2">
+                    <MapPin size={16} className="text-blue-600" />
+                    {facility}
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                      {facilityCameras.filter((c) => c.status === "ONLINE").length}/{facilityCameras.length} Online
+                    </span>
+                  </h2>
+
+                  {/* Left and Right Quick Move Buttons */}
+                  <div className="flex items-center gap-1 bg-slate-800/80 p-0.5 rounded-xl border border-slate-700 ml-2">
+                    <button
+                      type="button"
+                      onClick={() => scrollRow(facility, "left")}
+                      className="p-1 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+                      title="Move feeds Left"
+                      aria-label="Scroll cameras left"
+                    >
+                      <ChevronLeft size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => scrollRow(facility, "right")}
+                      className="p-1 rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+                      title="Move feeds Right"
+                      aria-label="Scroll cameras right"
+                    >
+                      <ChevronRight size={15} />
+                    </button>
+                  </div>
+                </div>
 
                 <Link
                   href={`/dashboard/video-verification`}
@@ -304,16 +349,28 @@ export default function MonitorPage() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div
+                ref={(el) => {
+                  scrollContainerRef.current[facility] = el;
+                }}
+                className={cn(
+                  "scroll-smooth",
+                  viewMode === "CAROUSEL"
+                    ? "flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin"
+                    : "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 overflow-x-auto pb-2"
+                )}
+              >
                 {facilityCameras.map((camera) => (
                   <div
                     key={camera.id}
                     onClick={() => camera.status === "ONLINE" && setSelectedCamera(camera)}
-                    className={`rounded-3xl overflow-hidden border bg-card transition-all cursor-pointer shadow-sm hover:-translate-y-1 ${
+                    className={cn(
+                      "rounded-3xl overflow-hidden border bg-card transition-all cursor-pointer shadow-sm hover:-translate-y-1",
+                      viewMode === "CAROUSEL" && "w-[320px] sm:w-[380px] shrink-0 snap-start",
                       camera.status === "ONLINE"
                         ? "border-base hover:border-blue-500/50"
                         : "border-rose-500/30 opacity-70"
-                    }`}
+                    )}
                   >
                     {/* Video/Preview Box */}
                     <div className="relative aspect-video bg-slate-950 overflow-hidden flex items-center justify-center">

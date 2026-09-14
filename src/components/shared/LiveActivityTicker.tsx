@@ -10,6 +10,7 @@ import {
   X,
   Sparkles,
   ExternalLink,
+  ArrowLeftRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ export function LiveActivityTicker() {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isDismissed, setIsDismissed] = useState<boolean>(false);
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
+  const [dockPosition, setDockPosition] = useState<"right" | "left">("right");
 
   const getSeverityBadge = (sev: LiveStreamEvent["severity"]) => {
     switch (sev) {
@@ -52,7 +54,12 @@ export function LiveActivityTicker() {
   // If dismissed by user, render a compact floating restore badge on both desktop and mobile
   if (isDismissed) {
     return (
-      <div className="fixed bottom-20 sm:bottom-4 right-3 sm:right-4 z-40">
+      <div
+        className={cn(
+          "fixed bottom-20 sm:bottom-4 z-40 transition-all duration-300",
+          dockPosition === "right" ? "right-3 sm:right-4" : "left-3 sm:left-72"
+        )}
+      >
         <button
           type="button"
           onClick={() => {
@@ -80,7 +87,12 @@ export function LiveActivityTicker() {
     <>
       {/* Mobile Minimized Pill (only visible on mobile when not open) */}
       {!isMobileOpen && (
-        <div className="sm:hidden fixed bottom-20 right-3 z-30">
+        <div
+          className={cn(
+            "sm:hidden fixed bottom-20 z-30 transition-all duration-300",
+            dockPosition === "right" ? "right-3" : "left-3"
+          )}
+        >
           <button
             type="button"
             onClick={() => setIsMobileOpen(true)}
@@ -109,7 +121,8 @@ export function LiveActivityTicker() {
       <div
         className={cn(
           "z-40 select-none transition-all duration-300",
-          "sm:fixed sm:bottom-4 sm:right-4 sm:max-w-md sm:w-full sm:block",
+          "sm:fixed sm:bottom-4 sm:max-w-md sm:w-full sm:block",
+          dockPosition === "right" ? "sm:right-4 sm:left-auto" : "sm:left-72 sm:right-auto",
           isMobileOpen
             ? "fixed bottom-20 inset-x-3 max-w-sm mx-auto block"
             : "hidden sm:block"
@@ -133,6 +146,15 @@ export function LiveActivityTicker() {
             </div>
 
             <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setDockPosition((pos) => (pos === "right" ? "left" : "right"))}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                title={dockPosition === "right" ? "Move ticker to Left Side" : "Move ticker to Right Side"}
+                aria-label="Toggle side placement"
+              >
+                <ArrowLeftRight size={13} />
+              </button>
               <button
                 type="button"
                 onClick={() => triggerManualEvent()}
